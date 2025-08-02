@@ -52,7 +52,7 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
   });
 
   const signUpMutation = useMutation({
-    mutationFn: (userData: typeof signUpData) => apiRequest('POST', '/api/auth/signup', userData),
+    mutationFn: (userData: any) => apiRequest('POST', '/api/auth/signup', userData),
     onSuccess: () => {
       toast({
         title: t('accountCreated'),
@@ -89,8 +89,8 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
     if (signUpData.username.trim()) {
       const userData = {
         username: signUpData.username.trim(),
-        ...(signUpData.email.trim() && { email: signUpData.email.trim() }),
-        ...(signUpData.phone.trim() && { phone: signUpData.phone.trim() })
+        email: signUpData.email.trim() || null,
+        phone: signUpData.phone.trim() || null
       };
       signUpMutation.mutate(userData);
     }
