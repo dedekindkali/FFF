@@ -9,28 +9,14 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-export function Admin() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+interface AdminProps {
+  onLogout: () => void;
+}
+
+export function Admin({ onLogout }: AdminProps) {
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Start authenticated since we're already in admin mode
   const [password, setPassword] = useState("");
   const { toast } = useToast();
-
-  const adminAuthMutation = useMutation({
-    mutationFn: (password: string) => apiRequest('POST', '/api/admin/auth', { password }),
-    onSuccess: () => {
-      setIsAuthenticated(true);
-      toast({
-        title: "Admin access granted",
-        description: "You now have access to the admin panel.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Access denied",
-        description: "Invalid admin password.",
-        variant: "destructive",
-      });
-    },
-  });
 
   const { data: statsData, isLoading } = useQuery({
     queryKey: ['/api/admin/stats'],
@@ -142,6 +128,12 @@ export function Admin() {
     );
   }
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setPassword("");
+    onLogout();
+  };
+
   if (!stats) {
     return (
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -154,9 +146,15 @@ export function Admin() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h2>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Event overview and management tools</p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h2>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Event overview and management tools</p>
+        </div>
+        <Button onClick={handleLogout} variant="outline" size="sm">
+          <Lock className="h-4 w-4 mr-2" />
+          Logout
+        </Button>
       </div>
 
       {/* Overview Stats */}

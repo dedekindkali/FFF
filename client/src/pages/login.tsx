@@ -14,9 +14,10 @@ import logoPath from "@assets/FFF_Logo_white_1754154030771.png";
 interface LoginProps {
   onLogin: () => void;
   onSignUp: () => void;
+  onAdminLogin: () => void;
 }
 
-export function Login({ onLogin, onSignUp }: LoginProps) {
+export function Login({ onLogin, onSignUp, onAdminLogin }: LoginProps) {
   const [username, setUsername] = useState("");
   const [signUpData, setSignUpData] = useState({
     username: "",
@@ -89,7 +90,7 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
         title: "Admin access granted",
         description: "Redirecting to admin panel...",
       });
-      onLogin();
+      onAdminLogin();
     },
     onError: (error: any) => {
       if (error?.message?.includes('Invalid admin password')) {

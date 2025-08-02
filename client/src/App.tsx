@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
   const [currentView, setCurrentView] = useState('dashboard');
 
   const { data: userData, isLoading, error } = useQuery({
@@ -35,17 +36,25 @@ function AppContent() {
 
   const handleLogin = () => {
     setIsAuthenticated(true);
+    setIsAdminMode(false);
     queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+  };
+
+  const handleAdminLogin = () => {
+    setIsAdminMode(true);
+    setIsAuthenticated(false); // Admin doesn't need regular auth
   };
 
   const handleSignUp = () => {
     setIsAuthenticated(true);
+    setIsAdminMode(false);
     setCurrentView('attendance'); // Redirect to attendance after signup
     queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setIsAdminMode(false);
     setCurrentView('dashboard');
     queryClient.clear();
   };
@@ -58,8 +67,12 @@ function AppContent() {
     );
   }
 
+  if (isAdminMode) {
+    return <Admin onLogout={handleLogout} />;
+  }
+
   if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} onSignUp={handleSignUp} />;
+    return <Login onLogin={handleLogin} onSignUp={handleSignUp} onAdminLogin={handleAdminLogin} />;
   }
 
   const renderCurrentView = () => {
