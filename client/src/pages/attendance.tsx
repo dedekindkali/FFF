@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Car, Utensils, StickyNote, RotateCcw } from "lucide-react";
+import { Calendar, Utensils, StickyNote, RotateCcw } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/components/language-provider";
 
 export function Attendance() {
   const [formData, setFormData] = useState({
@@ -26,9 +26,6 @@ export function Attendance() {
     day3Lunch: false,
     day3Dinner: false,
     day3Night: false,
-    // Transportation
-    transportationStatus: "",
-    transportationDetails: "",
     // Dietary
     vegetarian: false,
     vegan: false,
@@ -41,6 +38,7 @@ export function Attendance() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const { data: attendanceData, isLoading } = useQuery({
     queryKey: ['/api/attendance'],
@@ -62,8 +60,6 @@ export function Attendance() {
         day3Lunch: attendance.day3Lunch || false,
         day3Dinner: attendance.day3Dinner || false,
         day3Night: attendance.day3Night || false,
-        transportationStatus: attendance.transportationStatus || "",
-        transportationDetails: attendance.transportationDetails || "",
         vegetarian: attendance.vegetarian || false,
         vegan: attendance.vegan || false,
         glutenFree: attendance.glutenFree || false,
@@ -75,16 +71,17 @@ export function Attendance() {
   }, [attendanceData]);
 
   const saveMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/attendance', formData),
+    mutationFn: (attendanceData: any) => apiRequest('/api/attendance', 'POST', attendanceData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/attendance'] });
       toast({
-        title: "Preferences saved successfully!",
+        title: t('attendanceSaved'),
       });
     },
     onError: () => {
       toast({
-        title: "Error saving preferences",
+        title: "Error",
+        description: "Failed to save attendance preferences.",
         variant: "destructive",
       });
     },
@@ -92,7 +89,7 @@ export function Attendance() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    saveMutation.mutate();
+    saveMutation.mutate(formData);
   };
 
   const resetForm = () => {
@@ -109,8 +106,6 @@ export function Attendance() {
       day3Lunch: false,
       day3Dinner: false,
       day3Night: false,
-      transportationStatus: "",
-      transportationDetails: "",
       vegetarian: false,
       vegan: false,
       glutenFree: false,
@@ -123,8 +118,11 @@ export function Attendance() {
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+        <div className="animate-pulse space-y-8">
+          <div className="space-y-2">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          </div>
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
         </div>
       </div>
@@ -134,8 +132,8 @@ export function Attendance() {
   return (
     <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Attendance Confirmation</h2>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Select which meals and activities you'll attend</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('attendanceTitle')}</h2>
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{t('attendanceSubtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -148,10 +146,10 @@ export function Attendance() {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { key: 'day1Breakfast', label: 'Breakfast', time: '8:00 AM' },
-                { key: 'day1Lunch', label: 'Lunch', time: '12:00 PM' },
-                { key: 'day1Dinner', label: 'Dinner', time: '7:00 PM' },
-                { key: 'day1Night', label: 'Night Activity', time: '9:00 PM' },
+                { key: 'day1Breakfast', label: t('breakfast'), time: '8:00 AM' },
+                { key: 'day1Lunch', label: t('lunch'), time: '12:00 PM' },
+                { key: 'day1Dinner', label: t('dinner'), time: '7:00 PM' },
+                { key: 'day1Night', label: t('overnight'), time: '9:00 PM' },
               ].map(({ key, label, time }) => (
                 <label key={key} className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                   <Checkbox
@@ -177,10 +175,10 @@ export function Attendance() {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { key: 'day2Breakfast', label: 'Breakfast', time: '8:00 AM' },
-                { key: 'day2Lunch', label: 'Lunch', time: '12:00 PM' },
-                { key: 'day2Dinner', label: 'Dinner', time: '7:00 PM' },
-                { key: 'day2Night', label: 'Night Activity', time: '9:00 PM' },
+                { key: 'day2Breakfast', label: t('breakfast'), time: '8:00 AM' },
+                { key: 'day2Lunch', label: t('lunch'), time: '12:00 PM' },
+                { key: 'day2Dinner', label: t('dinner'), time: '7:00 PM' },
+                { key: 'day2Night', label: t('overnight'), time: '9:00 PM' },
               ].map(({ key, label, time }) => (
                 <label key={key} className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                   <Checkbox
@@ -206,10 +204,10 @@ export function Attendance() {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { key: 'day3Breakfast', label: 'Breakfast', time: '8:00 AM' },
-                { key: 'day3Lunch', label: 'Lunch', time: '12:00 PM' },
-                { key: 'day3Dinner', label: 'Dinner', time: '7:00 PM' },
-                { key: 'day3Night', label: 'Night Activity', time: '9:00 PM' },
+                { key: 'day3Breakfast', label: t('breakfast'), time: '8:00 AM' },
+                { key: 'day3Lunch', label: t('lunch'), time: '12:00 PM' },
+                { key: 'day3Dinner', label: t('dinner'), time: '7:00 PM' },
+                { key: 'day3Night', label: t('overnight'), time: '9:00 PM' },
               ].map(({ key, label, time }) => (
                 <label key={key} className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                   <Checkbox
@@ -226,92 +224,51 @@ export function Attendance() {
           </CardContent>
         </Card>
 
-        {/* Transportation & Dietary Preferences */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Transportation */}
-          <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <Car className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
-                Transportation
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Ride Status
+        {/* Dietary Preferences */}
+        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <Utensils className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
+              {t('dietary')}
+            </h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { key: 'vegetarian', label: t('vegetarian') },
+                  { key: 'vegan', label: t('vegan') },
+                  { key: 'glutenFree', label: t('glutenFree') },
+                  { key: 'dairyFree', label: t('dairyFree') },
+                ].map(({ key, label }) => (
+                  <label key={key} className="flex items-center space-x-2 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    <Checkbox
+                      checked={formData[key as keyof typeof formData] as boolean}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, [key]: checked }))}
+                    />
+                    <span className="text-sm text-gray-900 dark:text-white">{label}</span>
                   </label>
-                  <Select value={formData.transportationStatus} onValueChange={(value) => setFormData(prev => ({ ...prev, transportationStatus: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select option" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="offering">Offering rides</SelectItem>
-                      <SelectItem value="needed">Need a ride</SelectItem>
-                      <SelectItem value="own">Own transportation</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Details
-                  </label>
-                  <Textarea
-                    value={formData.transportationDetails}
-                    onChange={(e) => setFormData(prev => ({ ...prev, transportationDetails: e.target.value }))}
-                    placeholder="Location, departure time, number of seats, etc."
-                    rows={3}
-                  />
-                </div>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Dietary Preferences */}
-          <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <Utensils className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
-                Dietary Preferences
-              </h3>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  {[
-                    { key: 'vegetarian', label: 'Vegetarian' },
-                    { key: 'vegan', label: 'Vegan' },
-                    { key: 'glutenFree', label: 'Gluten-free' },
-                    { key: 'dairyFree', label: 'Dairy-free' },
-                  ].map(({ key, label }) => (
-                    <label key={key} className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={formData[key as keyof typeof formData] as boolean}
-                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, [key]: checked }))}
-                      />
-                      <span className="text-sm text-gray-900 dark:text-white">{label}</span>
-                    </label>
-                  ))}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Food Allergies / Other Restrictions
-                  </label>
-                  <Textarea
-                    value={formData.allergies}
-                    onChange={(e) => setFormData(prev => ({ ...prev, allergies: e.target.value }))}
-                    placeholder="Please list any food allergies or additional dietary restrictions"
-                    rows={2}
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('allergies')}
+                </label>
+                <Textarea
+                  value={formData.allergies}
+                  onChange={(e) => setFormData(prev => ({ ...prev, allergies: e.target.value }))}
+                  placeholder="Please list any food allergies or additional dietary restrictions"
+                  rows={2}
+                />
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Additional Notes */}
         <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
               <StickyNote className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
-              Additional Notes
+              {t('additionalNotes')}
             </h3>
             <Textarea
               value={formData.notes}
@@ -329,7 +286,7 @@ export function Attendance() {
             Reset Form
           </Button>
           <Button type="submit" disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? "Saving..." : "Save Preferences"}
+            {saveMutation.isPending ? "Saving..." : t('saveAttendance')}
           </Button>
         </div>
       </form>

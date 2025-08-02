@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/components/theme-provider";
-import { useLanguage } from "@/components/language-provider";
-import { Sun, Moon, Home, Calendar, Users, Car, Settings, LogOut, Languages } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Home, Users, Calendar, Car, Settings, Menu, LogOut, Languages } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useLanguage } from "@/components/language-provider";
 import logoPath from "@assets/FFF_Logo_white_1754154030771.png";
 
 interface NavigationProps {
@@ -14,111 +16,118 @@ interface NavigationProps {
 }
 
 export function Navigation({ currentView, onViewChange, onLogout }: NavigationProps) {
-  const { theme, setTheme } = useTheme();
-  const { language, setLanguage, t } = useLanguage();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toast } = useToast();
-
-  const { data: userData } = useQuery({
-    queryKey: ['/api/auth/me'],
-  });
-
-  const user = (userData as any)?.user;
+  const { language, setLanguage, t } = useLanguage();
 
   const logoutMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/auth/logout'),
+    mutationFn: () => apiRequest('/api/auth/logout', 'POST'),
     onSuccess: () => {
-      toast({
-        title: "Logged out successfully",
-      });
+      queryClient.clear();
       onLogout();
-    },
-    onError: () => {
       toast({
-        title: "Error logging out",
-        variant: "destructive",
+        title: t('loggedOut'),
       });
     },
   });
 
-  const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light");
-  };
-
-  const navItems = [
-    { key: 'dashboard', label: t('dashboard'), icon: Home },
-    { key: 'attendance', label: t('attendance'), icon: Calendar },
-    { key: 'participants', label: t('participants'), icon: Users },
-    { key: 'rides', label: t('rides'), icon: Car },
-    ...(user?.isAdmin ? [{ key: 'admin', label: t('admin'), icon: Settings }] : []),
+  const navigationItems = [
+    { id: 'dashboard', label: t('dashboard'), icon: Home },
+    { id: 'attendance', label: t('attendance'), icon: Calendar },
+    { id: 'participants', label: t('participants'), icon: Users },
+    { id: 'rides', label: t('rides'), icon: Car },
+    { id: 'admin', label: t('admin'), icon: Settings },
   ];
 
+  const handleNavigation = (view: string) => {
+    onViewChange(view);
+    setIsMobileMenuOpen(false);
+  };
+
+  const NavItems = ({ mobile = false }: { mobile?: boolean }) => (
+    <>
+      {navigationItems.map(({ id, label, icon: Icon }) => (
+        <Button
+          key={id}
+          variant={currentView === id ? "default" : "ghost"}
+          className={`${mobile ? 'w-full justify-start' : ''} flex items-center gap-2`}
+          onClick={() => handleNavigation(id)}
+        >
+          <Icon className="h-4 w-4" />
+          {label}
+        </Button>
+      ))}
+    </>
+  );
+
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <img src={logoPath} alt="FroForForno Logo" className="h-8 w-8 mr-3" />
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">FroForForno</h1>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <nav className="hidden md:flex space-x-8">
-              {navItems.map(({ key, label, icon: Icon }) => (
+    <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8">
+      <div className="flex justify-between items-center h-16">
+        {/* Logo */}
+        <div className="flex items-center space-x-3">
+          <img src={logoPath} alt="FroForForno" className="h-8 w-auto" />
+          <span className="text-xl font-bold text-gray-900 dark:text-white">FroForForno</span>
+        </div>
+
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center space-x-4">
+          <NavItems />
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center space-x-4">
+          {/* Language Switcher */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Languages className="h-4 w-4 mr-2" />
+                {language.toUpperCase()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setLanguage('en')}>
+                English
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLanguage('it')}>
+                Italiano
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Logout Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => logoutMutation.mutate()}
+            disabled={logoutMutation.isPending}
+            className="hidden md:flex"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            {t('logout')}
+          </Button>
+
+          {/* Mobile Menu */}
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="sm" className="md:hidden">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-64">
+              <div className="flex flex-col space-y-4 mt-8">
+                <NavItems mobile />
                 <Button
-                  key={key}
                   variant="ghost"
-                  className={`${
-                    currentView === key
-                      ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 rounded-none'
-                      : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                  }`}
-                  onClick={() => onViewChange(key)}
+                  onClick={() => logoutMutation.mutate()}
+                  disabled={logoutMutation.isPending}
+                  className="w-full justify-start"
                 >
-                  <Icon className="h-4 w-4 mr-1" />
-                  {label}
+                  <LogOut className="h-4 w-4 mr-2" />
+                  {t('logout')}
                 </Button>
-              ))}
-            </nav>
-            
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLanguage(language === 'en' ? 'it' : 'en')}
-                className="h-9 px-3"
-              >
-                <Languages className="h-4 w-4 mr-1" />
-                {language === 'en' ? 'IT' : 'EN'}
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                className="h-9 w-9"
-              >
-                {theme === "light" ? (
-                  <Moon className="h-4 w-4" />
-                ) : (
-                  <Sun className="h-4 w-4" />
-                )}
-              </Button>
-              
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                {user?.username}
-              </span>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => logoutMutation.mutate()}
-                className="h-9 w-9"
-                title={t('logout')}
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </nav>

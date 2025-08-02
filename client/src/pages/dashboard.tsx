@@ -39,10 +39,15 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   };
 
   const getDietaryStatus = () => {
-    if (!attendance) return "Not Set";
-    if (attendance.vegetarian || attendance.vegan || attendance.glutenFree || 
-        attendance.dairyFree || attendance.allergies) return "Set";
-    return "Not Set";
+    if (!attendance) return t('notSet');
+    const preferences = [];
+    if (attendance.vegetarian) preferences.push(t('vegetarian'));
+    if (attendance.vegan) preferences.push(t('vegan'));
+    if (attendance.glutenFree) preferences.push(t('glutenFree'));
+    if (attendance.dairyFree) preferences.push(t('dairyFree'));
+    if (attendance.allergies) preferences.push(`${t('allergies')}: ${attendance.allergies}`);
+    
+    return preferences.length > 0 ? preferences.join(', ') : t('notSet');
   };
 
   return (
@@ -60,7 +65,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 <Calendar className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Days Attending</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('daysAttending')}</p>
                 <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                   {calculateAttendingDays()}/3
                 </p>
@@ -92,8 +97,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 <Utensils className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Dietary Info</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('dietaryPreferences')}</p>
+                <p className="text-lg font-semibold text-gray-900 dark:text-white truncate max-w-40" title={getDietaryStatus()}>
                   {getDietaryStatus()}
                 </p>
               </div>

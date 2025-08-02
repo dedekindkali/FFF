@@ -8,19 +8,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { username } = insertUserSchema.parse(req.body);
+      const { username } = req.body;
       
-      let user = await storage.getUserByUsername(username);
-      if (!user) {
-        // Create new user if doesn't exist
-        user = await storage.createUser({ username });
+      if (!username) {
+        return res.status(400).json({ message: "Username is required" });
       }
+
+      const user = await storage.getUserByUsername(username);
       
-      // Store user in session
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
       (req as any).session.userId = user.id;
       res.json({ user });
     } catch (error) {
-      res.status(400).json({ message: "Invalid username" });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { username } = req.body;
+      
+      if (!username) {
+        return res.status(400).json({ message: "Username is required" });
+      }
+
+      const existingUser = await storage.getUserByUsername(username);
+      
+      if (existingUser) {
+        return res.status(409).json({ message: "Username already exists" });
+      }
+
+      const user = await storage.createUser({ username });
+      (req as any).session.userId = user.id;
+      res.json({ user });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 

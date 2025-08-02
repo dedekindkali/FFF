@@ -37,6 +37,12 @@ function AppContent() {
     queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
   };
 
+  const handleSignUp = () => {
+    setIsAuthenticated(true);
+    setCurrentView('attendance'); // Redirect to attendance after signup
+    queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+  };
+
   const handleLogout = () => {
     setIsAuthenticated(false);
     setCurrentView('dashboard');
@@ -52,7 +58,7 @@ function AppContent() {
   }
 
   if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
+    return <Login onLogin={handleLogin} onSignUp={handleSignUp} />;
   }
 
   const renderCurrentView = () => {

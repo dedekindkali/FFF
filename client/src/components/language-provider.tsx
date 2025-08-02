@@ -1,26 +1,31 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { translations, Language, TranslationKey } from "@/lib/translations";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { translations } from '@/lib/translations';
+
+type Language = 'en' | 'it';
 
 interface LanguageContextType {
   language: Language;
-  setLanguage: (language: Language) => void;
-  t: (key: TranslationKey) => string;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => {
-    const stored = localStorage.getItem("language");
-    return (stored as Language) || "en";
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('language') as Language;
+      return stored && ['en', 'it'].includes(stored) ? stored : 'en';
+    }
+    return 'en';
   });
 
   useEffect(() => {
-    localStorage.setItem("language", language);
+    localStorage.setItem('language', language);
   }, [language]);
 
-  const t = (key: TranslationKey): string => {
-    return translations[language][key] || translations.en[key] || key;
+  const t = (key: string): string => {
+    return translations[language][key as keyof typeof translations[typeof language]] || key;
   };
 
   return (
@@ -30,10 +35,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useLanguage() {
+export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
-    throw new Error("useLanguage must be used within a LanguageProvider");
+    throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
-}
+};
