@@ -19,6 +19,8 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
     queryKey: ['/api/auth/me'],
   });
 
+  const user = (userData as any)?.user;
+
   const logoutMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/auth/logout'),
     onSuccess: () => {
@@ -43,7 +45,7 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
     { key: 'dashboard', label: 'Dashboard', icon: Home },
     { key: 'attendance', label: 'Attendance', icon: Calendar },
     { key: 'participants', label: 'Participants', icon: Users },
-    ...(userData?.user?.isAdmin ? [{ key: 'admin', label: 'Admin', icon: Settings }] : []),
+    ...(user?.isAdmin ? [{ key: 'admin', label: 'Admin', icon: Settings }] : []),
   ];
 
   return (
@@ -51,9 +53,7 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <div className="h-8 w-8 bg-black dark:bg-white rounded-full flex items-center justify-center mr-3">
-              <div className="h-4 w-4 border border-white dark:border-black border-b-transparent rounded-full"></div>
-            </div>
+            <img src="/attached_assets/FFF_Logo-01.png" alt="Event Logo" className="h-8 w-8 mr-3" />
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Event Manager</h1>
           </div>
           
@@ -91,7 +91,7 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
               </Button>
               
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                {userData?.user?.username}
+                {user?.username}
               </span>
               
               <Button

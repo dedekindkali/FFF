@@ -11,7 +11,7 @@ export function Admin() {
     queryKey: ['/api/admin/stats'],
   });
 
-  const stats = statsData?.stats;
+  const stats = (statsData as any)?.stats;
 
   const handleExport = (type: string) => {
     // Open the export endpoint in a new window to trigger download

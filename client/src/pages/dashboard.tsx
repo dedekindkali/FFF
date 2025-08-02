@@ -12,7 +12,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     queryKey: ['/api/attendance'],
   });
 
-  const attendance = attendanceData?.attendance;
+  const attendance = (attendanceData as any)?.attendance;
 
   const calculateAttendingDays = () => {
     if (!attendance) return 0;

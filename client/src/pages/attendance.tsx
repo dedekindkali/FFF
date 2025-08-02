@@ -47,28 +47,29 @@ export function Attendance() {
   });
 
   useEffect(() => {
-    if (attendanceData?.attendance) {
+    const attendance = (attendanceData as any)?.attendance;
+    if (attendance) {
       setFormData({
-        day1Breakfast: attendanceData.attendance.day1Breakfast || false,
-        day1Lunch: attendanceData.attendance.day1Lunch || false,
-        day1Dinner: attendanceData.attendance.day1Dinner || false,
-        day1Night: attendanceData.attendance.day1Night || false,
-        day2Breakfast: attendanceData.attendance.day2Breakfast || false,
-        day2Lunch: attendanceData.attendance.day2Lunch || false,
-        day2Dinner: attendanceData.attendance.day2Dinner || false,
-        day2Night: attendanceData.attendance.day2Night || false,
-        day3Breakfast: attendanceData.attendance.day3Breakfast || false,
-        day3Lunch: attendanceData.attendance.day3Lunch || false,
-        day3Dinner: attendanceData.attendance.day3Dinner || false,
-        day3Night: attendanceData.attendance.day3Night || false,
-        transportationStatus: attendanceData.attendance.transportationStatus || "",
-        transportationDetails: attendanceData.attendance.transportationDetails || "",
-        vegetarian: attendanceData.attendance.vegetarian || false,
-        vegan: attendanceData.attendance.vegan || false,
-        glutenFree: attendanceData.attendance.glutenFree || false,
-        dairyFree: attendanceData.attendance.dairyFree || false,
-        allergies: attendanceData.attendance.allergies || "",
-        notes: attendanceData.attendance.notes || "",
+        day1Breakfast: attendance.day1Breakfast || false,
+        day1Lunch: attendance.day1Lunch || false,
+        day1Dinner: attendance.day1Dinner || false,
+        day1Night: attendance.day1Night || false,
+        day2Breakfast: attendance.day2Breakfast || false,
+        day2Lunch: attendance.day2Lunch || false,
+        day2Dinner: attendance.day2Dinner || false,
+        day2Night: attendance.day2Night || false,
+        day3Breakfast: attendance.day3Breakfast || false,
+        day3Lunch: attendance.day3Lunch || false,
+        day3Dinner: attendance.day3Dinner || false,
+        day3Night: attendance.day3Night || false,
+        transportationStatus: attendance.transportationStatus || "",
+        transportationDetails: attendance.transportationDetails || "",
+        vegetarian: attendance.vegetarian || false,
+        vegan: attendance.vegan || false,
+        glutenFree: attendance.glutenFree || false,
+        dairyFree: attendance.dairyFree || false,
+        allergies: attendance.allergies || "",
+        notes: attendance.notes || "",
       });
     }
   }, [attendanceData]);

@@ -22,7 +22,8 @@ function AppContent() {
   });
 
   useEffect(() => {
-    if (userData?.user) {
+    const user = (userData as any)?.user;
+    if (user) {
       setIsAuthenticated(true);
     } else if (error || (!isLoading && !userData)) {
       setIsAuthenticated(false);

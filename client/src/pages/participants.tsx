@@ -15,13 +15,13 @@ export function Participants() {
     queryKey: ['/api/participants'],
   });
 
-  const participants = participantsData?.participants || [];
+  const participants = (participantsData as any)?.participants || [];
 
   const filteredParticipants = participants.filter((participant: any) => {
     const matchesSearch = participant.username.toLowerCase().includes(searchTerm.toLowerCase());
     
     let matchesDay = true;
-    if (dayFilter) {
+    if (dayFilter && dayFilter !== 'all') {
       const attendance = participant.attendance;
       if (!attendance) {
         matchesDay = false;
@@ -41,7 +41,7 @@ export function Participants() {
     }
     
     let matchesRide = true;
-    if (rideFilter) {
+    if (rideFilter && rideFilter !== 'all') {
       matchesRide = participant.attendance?.transportationStatus === rideFilter;
     }
     
@@ -134,7 +134,7 @@ export function Participants() {
             <SelectValue placeholder="All Days" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Days</SelectItem>
+            <SelectItem value="all">All Days</SelectItem>
             <SelectItem value="day1">August 28</SelectItem>
             <SelectItem value="day2">August 29</SelectItem>
             <SelectItem value="day3">August 30</SelectItem>
@@ -146,7 +146,7 @@ export function Participants() {
             <SelectValue placeholder="All Ride Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Ride Status</SelectItem>
+            <SelectItem value="all">All Ride Status</SelectItem>
             <SelectItem value="offering">Offering Rides</SelectItem>
             <SelectItem value="needed">Need Rides</SelectItem>
             <SelectItem value="own">Own Transport</SelectItem>
