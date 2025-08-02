@@ -282,6 +282,18 @@ export const translations = {
     noParticipantsFound: "Nessun partecipante trovato",
     noParticipantsFoundDesc: "Prova a modificare i filtri di ricerca",
     
+    // Enhanced ride system
+    notifications: 'Notifiche',
+    newNotification: 'Nuova notifica',
+    markAsRead: 'Segna come letto',
+    rideModified: 'Passaggio modificato',
+    rideOffer: 'Offerta passaggio',
+    modifyRide: 'Modifica passaggio',
+    inviteUsers: 'Invita utenti',
+    selectRide: 'Seleziona passaggio',
+    createNewRide: 'Crea nuovo passaggio',
+    sendInvitations: 'Invia inviti',
+    
     // Common
     loading: "Caricamento...",
     save: "Salva",

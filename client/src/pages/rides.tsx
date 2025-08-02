@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Car, Plus, MapPin, Clock, Users, MessageSquare, Calendar, User } from "lucide-react";
+import { Car, Plus, MapPin, Clock, Users, MessageSquare, Calendar, User, Edit, Bell, ChevronDown } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,8 @@ export function Rides() {
   const { toast } = useToast();
   const [showOfferDialog, setShowOfferDialog] = useState(false);
   const [showRequestDialog, setShowRequestDialog] = useState(false);
+  const [editingRide, setEditingRide] = useState<any>(null);
+  const [showModifyDialog, setShowModifyDialog] = useState(false);
 
   const { data: ridesData } = useQuery({
     queryKey: ['/api/rides'],
@@ -27,8 +29,13 @@ export function Rides() {
     queryKey: ['/api/ride-requests'],
   });
 
+  const { data: authData } = useQuery({
+    queryKey: ['/api/auth/me'],
+  });
+
   const rides = (ridesData as any)?.rides || [];
   const requests = (requestsData as any)?.requests || [];
+  const currentUser = (authData as any)?.user;
 
   const offerRideMutation = useMutation({
     mutationFn: (rideData: InsertRide) => apiRequest('POST', '/api/rides', rideData),
@@ -50,6 +57,20 @@ export function Rides() {
       toast({
         title: "Success",
         description: "Ride request created successfully!",
+      });
+    },
+  });
+
+  const modifyRideMutation = useMutation({
+    mutationFn: ({ rideId, updates }: { rideId: number; updates: Partial<InsertRide> }) => 
+      apiRequest('PUT', `/api/rides/${rideId}`, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
+      setShowModifyDialog(false);
+      setEditingRide(null);
+      toast({
+        title: "Success",
+        description: "Ride updated successfully! Passengers have been notified.",
       });
     },
   });
@@ -141,6 +162,11 @@ export function Rides() {
                 ride={ride} 
                 onRequestJoin={(message) => joinRequestMutation.mutate({ rideId: ride.id, message })}
                 isRequestingJoin={joinRequestMutation.isPending}
+                currentUser={currentUser}
+                onModifyRide={(ride) => {
+                  setEditingRide(ride);
+                  setShowModifyDialog(true);
+                }}
               />
             ))}
           </div>
@@ -197,11 +223,125 @@ export function Rides() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Modify Ride Dialog */}
+      <Dialog open={showModifyDialog} onOpenChange={setShowModifyDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{t('modifyRide')}</DialogTitle>
+          </DialogHeader>
+          {editingRide && (
+            <ModifyRideDialog
+              ride={editingRide}
+              onSubmit={(updates) => {
+                modifyRideMutation.mutate({
+                  rideId: editingRide.id,
+                  updates
+                });
+              }}
+              isLoading={modifyRideMutation.isPending}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function RideCard({ ride, onRequestJoin, isRequestingJoin }: { ride: Ride & { driver: any }, onRequestJoin: (message: string) => void, isRequestingJoin: boolean }) {
+function ModifyRideDialog({ ride, onSubmit, isLoading }: { 
+  ride: any; 
+  onSubmit: (updates: Partial<InsertRide>) => void; 
+  isLoading: boolean 
+}) {
+  const { t } = useLanguage();
+  const [departure, setDeparture] = useState(ride.departure);
+  const [destination, setDestination] = useState(ride.destination);
+  const [departureTime, setDepartureTime] = useState(ride.departureTime);
+  const [totalSeats, setTotalSeats] = useState(ride.totalSeats);
+  const [notes, setNotes] = useState(ride.notes || '');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      departure,
+      destination,
+      departureTime,
+      totalSeats: parseInt(totalSeats),
+      availableSeats: parseInt(totalSeats) - (ride.totalSeats - ride.availableSeats),
+      notes
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="departure">{t('departure')}</Label>
+        <Input
+          id="departure"
+          value={departure}
+          onChange={(e) => setDeparture(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="destination">{t('destination')}</Label>
+        <Input
+          id="destination"
+          value={destination}
+          onChange={(e) => setDestination(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="departureTime">{t('departureTime')}</Label>
+        <Input
+          id="departureTime"
+          type="time"
+          value={departureTime}
+          onChange={(e) => setDepartureTime(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="totalSeats">{t('totalSeats')}</Label>
+        <Input
+          id="totalSeats"
+          type="number"
+          min="1"
+          max="8"
+          value={totalSeats}
+          onChange={(e) => setTotalSeats(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="notes">{t('notes')}</Label>
+        <Textarea
+          id="notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder={t('additionalNotes')}
+        />
+      </div>
+      
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? t('loading') : t('save')}
+      </Button>
+    </form>
+  );
+}
+
+function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModifyRide }: { 
+  ride: Ride & { driver: any }, 
+  onRequestJoin: (message: string) => void, 
+  isRequestingJoin: boolean,
+  currentUser?: any,
+  onModifyRide?: (ride: any) => void
+}) {
   const { t } = useLanguage();
   const [showJoinDialog, setShowJoinDialog] = useState(false);
   const [joinMessage, setJoinMessage] = useState("");
@@ -283,14 +423,29 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin }: { ride: Ride & { dr
             </div>
           )}
           
-          <Button 
-            onClick={handleRequestJoin} 
-            disabled={isRequestingJoin || ride.availableSeats === 0}
-            className="w-full"
-            size="sm"
-          >
-            {ride.availableSeats === 0 ? t('full') : t('requestToJoin')}
-          </Button>
+          <div className="flex gap-2">
+            {currentUser && ride.driver.id === currentUser.id && onModifyRide && (
+              <Button
+                variant="outline"
+                onClick={() => onModifyRide(ride)}
+                className="flex-1 text-ff-primary border-ff-primary hover:bg-ff-primary hover:text-white"
+                size="sm"
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                {t('modifyRide')}
+              </Button>
+            )}
+            {(!currentUser || ride.driver.id !== currentUser.id) && (
+              <Button 
+                onClick={handleRequestJoin} 
+                disabled={isRequestingJoin || ride.availableSeats === 0}
+                className="flex-1"
+                size="sm"
+              >
+                {ride.availableSeats === 0 ? t('full') : t('requestToJoin')}
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 

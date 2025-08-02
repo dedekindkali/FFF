@@ -85,6 +85,27 @@ export const rideJoinRequests = pgTable("ride_join_requests", {
   respondedAt: timestamp("responded_at"),
 });
 
+export const rideNotifications = pgTable("ride_notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  rideId: integer("ride_id").references(() => rides.id),
+  requestId: integer("request_id").references(() => rideRequests.id),
+  type: varchar("type", { length: 50 }).notNull(), // 'ride_modified', 'ride_offer', 'request_accepted', 'request_declined'
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false).notNull(),
+  createdAt: timestamp("created_at").default(sql`NOW()`).notNull(),
+});
+
+export const rideInvitations = pgTable("ride_invitations", {
+  id: serial("id").primaryKey(),
+  rideId: integer("ride_id").references(() => rides.id).notNull(),
+  inviterId: integer("inviter_id").references(() => users.id).notNull(),
+  inviteeId: integer("invitee_id").references(() => users.id).notNull(),
+  status: varchar("status", { length: 20 }).default("pending").notNull(), // 'pending', 'accepted', 'declined'
+  createdAt: timestamp("created_at").default(sql`NOW()`).notNull(),
+  respondedAt: timestamp("responded_at"),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   email: true,
@@ -120,6 +141,17 @@ export const insertRideJoinRequestSchema = createInsertSchema(rideJoinRequests).
   respondedAt: true,
 });
 
+export const insertRideNotificationSchema = createInsertSchema(rideNotifications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertRideInvitationSchema = createInsertSchema(rideInvitations).omit({
+  id: true,
+  createdAt: true,
+  respondedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type AttendanceRecord = typeof attendanceRecords.$inferSelect;
@@ -131,3 +163,7 @@ export type RideRequest = typeof rideRequests.$inferSelect;
 export type InsertRideRequest = z.infer<typeof insertRideRequestSchema>;
 export type RideJoinRequest = typeof rideJoinRequests.$inferSelect;
 export type InsertRideJoinRequest = z.infer<typeof insertRideJoinRequestSchema>;
+export type RideNotification = typeof rideNotifications.$inferSelect;
+export type InsertRideNotification = z.infer<typeof insertRideNotificationSchema>;
+export type RideInvitation = typeof rideInvitations.$inferSelect;
+export type InsertRideInvitation = z.infer<typeof insertRideInvitationSchema>;

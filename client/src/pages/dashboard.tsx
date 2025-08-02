@@ -35,12 +35,18 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     queryKey: ['/api/auth/me'],
   });
 
+  const { data: notificationsData } = useQuery({
+    queryKey: ['/api/notifications'],
+  });
+
   const attendance = (attendanceData as any)?.attendance;
   const rides = (ridesData as any)?.rides || [];
   const requests = (requestsData as any)?.requests || [];
   const joinRequests = (joinRequestsData as any)?.requests || [];
   const rideJoinStatus = (rideJoinStatusData as any)?.joinRequests || [];
   const currentUser = (authData as any)?.user;
+  const notifications = (notificationsData as any)?.notifications || [];
+  const unreadNotifications = notifications.filter((n: any) => !n.isRead);
 
 
 
@@ -217,6 +223,25 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{currentUser?.username || t('welcomeBack')}</h2>
         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{t('eventDates')} • Gestisci la tua partecipazione e preferenze</p>
       </div>
+
+      {/* Notifications Section */}
+      {unreadNotifications.length > 0 && (
+        <div className="bg-ff-primary/10 border border-ff-primary/20 rounded-lg p-4 mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 bg-ff-primary rounded-full animate-pulse" />
+            <h3 className="font-black text-ff-primary font-display">
+              {t('notifications')} ({unreadNotifications.length})
+            </h3>
+          </div>
+          <div className="space-y-2">
+            {unreadNotifications.slice(0, 3).map((notification: any) => (
+              <div key={notification.id} className="text-sm text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-800/50 p-2 rounded">
+                {notification.message}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 

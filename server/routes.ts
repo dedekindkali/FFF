@@ -211,10 +211,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced ride system routes
+  app.put("/api/rides/:rideId", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const rideId = parseInt(req.params.rideId);
+      const ride = await storage.getRide(rideId);
+      
+      if (!ride || ride.driverId !== userId) {
+        return res.status(403).json({ message: "Not authorized to modify this ride" });
+      }
+
+      const updates = req.body;
+      await storage.updateRide(rideId, updates);
+
+      // Notify all passengers about the modification
+      const joinRequests = await storage.getRideJoinRequestsForDriver(userId);
+      const acceptedPassengers = joinRequests.filter(jr => jr.rideId === rideId && jr.status === 'accepted');
+      
+      for (const passenger of acceptedPassengers) {
+        await storage.createRideNotification({
+          userId: passenger.requesterId,
+          rideId: rideId,
+          type: 'ride_modified',
+          message: 'A ride you joined has been modified. Please check the updated details.',
+        });
+      }
+
+      res.json({ message: "Ride updated successfully" });
+    } catch (error) {
+      console.error("Error updating ride:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/notifications", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const notifications = await storage.getRideNotifications(userId);
+      res.json({ notifications });
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Admin routes
   app.get("/api/admin/stats", async (req, res) => {
     const userId = (req as any).session?.userId;
-    const adminAuthenticated = (req as any).session?.adminAuthenticated;
+    const adminAuthenticated = (req as any).session?.isAdminAuthenticated;
     
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -234,7 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/users", async (req, res) => {
     const userId = (req as any).session?.userId;
-    const adminAuthenticated = (req as any).session?.adminAuthenticated;
+    const adminAuthenticated = (req as any).session?.isAdminAuthenticated;
     
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
