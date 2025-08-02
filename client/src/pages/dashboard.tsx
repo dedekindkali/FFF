@@ -182,15 +182,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       };
     }
 
-    // Check if user has pending ride invitations
+    // Check if user has pending ride invitations - just show notification count
     if (pendingInvitations.length > 0) {
       return {
         type: "invitation-pending",
         icon: Bell,
-        title: `${pendingInvitations.length} Ride Invitation${pendingInvitations.length > 1 ? 's' : ''}`,
-        details: pendingInvitations.slice(0, 2).map((inv: any) => 
-          `${inv.inviter.username}: ${inv.ride.departure} → ${inv.ride.destination}`
-        ),
+        title: t('invitationsPending'),
+        details: [],
         color: "bg-ff-primary/10 text-ff-primary dark:bg-ff-primary/20 dark:text-ff-primary",
         hasNotifications: true,
         notificationCount: pendingInvitations.length

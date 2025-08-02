@@ -45,6 +45,7 @@ export const translations = {
     quickActions: "Quick Actions",
     updateAttendance: "Update Attendance",
     viewParticipants: "View Participants",
+    invitationsPending: "Ride Invitations",
     
     // Attendance
     attendanceTitle: "Event Attendance",
@@ -191,6 +192,7 @@ export const translations = {
     quickActions: "Azioni Rapide",
     updateAttendance: "Aggiorna Partecipazione",
     viewParticipants: "Vedi Partecipanti",
+    invitationsPending: "Inviti Passaggio",
     
     // Attendance
     attendanceTitle: "Partecipazione all'Evento",
