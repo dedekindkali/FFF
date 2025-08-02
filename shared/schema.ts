@@ -112,7 +112,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   phone: true,
 }).extend({
   email: z.string().email().optional().or(z.literal("")),
-  phone: z.string().optional(),
+  phone: z.string().optional().nullable(),
 });
 
 export const insertAttendanceSchema = createInsertSchema(attendanceRecords).omit({
