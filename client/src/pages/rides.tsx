@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Car, Plus, MapPin, Clock, Users, MessageSquare, Calendar, User, Edit, Bell, ChevronDown } from "lucide-react";
+import { Car, Plus, MapPin, Clock, Users, MessageSquare, Calendar, User, Edit, Bell, ChevronDown, Trash2 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -71,6 +71,28 @@ export function Rides() {
       toast({
         title: "Success",
         description: "Ride updated successfully! Passengers have been notified.",
+      });
+    },
+  });
+
+  const deleteRideMutation = useMutation({
+    mutationFn: (rideId: number) => apiRequest('DELETE', `/api/rides/${rideId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
+      toast({
+        title: "Success",
+        description: "Ride deleted successfully!",
+      });
+    },
+  });
+
+  const deleteRequestMutation = useMutation({
+    mutationFn: (requestId: number) => apiRequest('DELETE', `/api/ride-requests/${requestId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/ride-requests'] });
+      toast({
+        title: "Success", 
+        description: "Ride request deleted successfully!",
       });
     },
   });
@@ -226,9 +248,12 @@ export function Rides() {
 
       {/* Modify Ride Dialog */}
       <Dialog open={showModifyDialog} onOpenChange={setShowModifyDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] scrollable-popup">
           <DialogHeader>
             <DialogTitle>{t('modifyRide')}</DialogTitle>
+            <DialogDescription>
+              Update your ride details and notify passengers
+            </DialogDescription>
           </DialogHeader>
           {editingRide && (
             <ModifyRideDialog
@@ -273,7 +298,8 @@ function ModifyRideDialog({ ride, onSubmit, isLoading }: {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="scrollable-popup">
+      <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="departure">{t('departure')}</Label>
         <Input
@@ -328,10 +354,11 @@ function ModifyRideDialog({ ride, onSubmit, isLoading }: {
         />
       </div>
       
-      <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? t('loading') : t('save')}
-      </Button>
-    </form>
+        <Button type="submit" disabled={isLoading} className="w-full">
+          {isLoading ? t('loading') : t('save')}
+        </Button>
+      </form>
+    </div>
   );
 }
 
@@ -433,6 +460,21 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModify
               >
                 <Edit className="h-4 w-4 mr-1" />
                 {t('modifyRide')}
+              </Button>
+            )}
+            {currentUser && ride.driver.id === currentUser.id && onModifyRide && (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (window.confirm(t('deleteRideConfirm'))) {
+                    deleteRideMutation.mutate(ride.id);
+                  }
+                }}
+                className="flex-1"
+                size="sm"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                {t('deleteRide')}
               </Button>
             )}
             {(!currentUser || ride.driver.id !== currentUser.id) && (
@@ -551,22 +593,37 @@ function RequestCard({ request, onOfferRide }: {
               }`}>{request.status}</span>
             </div>
             
-            {request.status === 'open' && onOfferRide && (
-              <Button 
-                size="sm" 
-                onClick={() => setShowOfferDialog(true)}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Car className="h-4 w-4 mr-1" />
-                Offer Ride
-              </Button>
-            )}
+            <div className="flex space-x-2">
+              {request.status === 'open' && onOfferRide && (
+                <Button 
+                  size="sm" 
+                  onClick={() => setShowOfferDialog(true)}
+                  className="flex-1"
+                >
+                  <Car className="h-4 w-4 mr-1" />
+                  {t('offerRide')}
+                </Button>
+              )}
+              {currentUser && request.requesterId === currentUser.id && (
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    if (window.confirm(t('deleteRequestConfirm'))) {
+                      deleteRequestMutation.mutate(request.id);
+                    }
+                  }}
+                  size="sm"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
 
       <Dialog open={showOfferDialog} onOpenChange={setShowOfferDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md scrollable-popup">
           <DialogHeader>
             <DialogTitle>Offer Ride to {request.requester.username}</DialogTitle>
             <DialogDescription>

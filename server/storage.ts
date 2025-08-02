@@ -379,6 +379,72 @@ export class DatabaseStorage implements IStorage {
     // Finally delete the user
     await db.delete(users).where(eq(users.id, userId));
   }
+
+  async getAllUsersWithAttendance(): Promise<Array<User & { attendance?: AttendanceRecord }>> {
+    const result = await db
+      .select()
+      .from(users)
+      .leftJoin(attendanceRecords, eq(users.id, attendanceRecords.userId));
+
+    return result.map(row => ({
+      ...row.users,
+      attendance: row.attendance_records || undefined,
+    }));
+  }
+
+  async getAttendanceStats(): Promise<any> {
+    const allAttendance = await db.select().from(attendanceRecords);
+    
+    const stats = {
+      totalParticipants: allAttendance.length,
+      day1: {
+        breakfast: allAttendance.filter(a => a.day1Breakfast).length,
+        lunch: allAttendance.filter(a => a.day1Lunch).length,
+        dinner: allAttendance.filter(a => a.day1Dinner).length,
+        night: allAttendance.filter(a => a.day1Night).length,
+      },
+      day2: {
+        breakfast: allAttendance.filter(a => a.day2Breakfast).length,
+        lunch: allAttendance.filter(a => a.day2Lunch).length,
+        dinner: allAttendance.filter(a => a.day2Dinner).length,
+        night: allAttendance.filter(a => a.day2Night).length,
+      },
+      day3: {
+        breakfast: allAttendance.filter(a => a.day3Breakfast).length,
+        lunch: allAttendance.filter(a => a.day3Lunch).length,
+        dinner: allAttendance.filter(a => a.day3Dinner).length,
+        night: allAttendance.filter(a => a.day3Night).length,
+      },
+      transportation: {
+        offering: allAttendance.filter(a => a.transportationStatus === 'offering').length,
+        needed: allAttendance.filter(a => a.transportationStatus === 'needed').length,
+        own: allAttendance.filter(a => a.transportationStatus === 'own').length,
+      },
+      dietary: {
+        vegetarian: allAttendance.filter(a => a.vegetarian).length,
+        vegan: allAttendance.filter(a => a.vegan).length,
+        glutenFree: allAttendance.filter(a => a.glutenFree).length,
+        dairyFree: allAttendance.filter(a => a.dairyFree).length,
+        withAllergies: allAttendance.filter(a => a.allergies && a.allergies.trim().length > 0).length,
+      }
+    };
+
+    return stats;
+  }
+
+  async deleteRideRequest(requestId: number): Promise<void> {
+    await db
+      .delete(rideRequests)
+      .where(eq(rideRequests.id, requestId));
+  }
+
+  async getRideRequest(requestId: number): Promise<RideRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(rideRequests)
+      .where(eq(rideRequests.id, requestId));
+    return request || undefined;
+  }
 }
 
 export const storage = new DatabaseStorage();

@@ -15,12 +15,12 @@
   --card-foreground: hsl(20, 14.3%, 4.1%);
   --border: hsl(20, 5.9%, 90%);
   --input: hsl(20, 5.9%, 90%);
-  --primary: hsl(25, 95%, 53%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(35, 100%, 95%);
-  --secondary-foreground: hsl(25, 15%, 15%);
-  --accent: hsl(35, 100%, 95%);
-  --accent-foreground: hsl(25, 15%, 15%);
+  --primary: hsl(320, 100%, 50%);
+  --primary-foreground: hsl(0, 0%, 0%);
+  --secondary: hsl(0, 0%, 10%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(320, 100%, 50%);
+  --accent-foreground: hsl(0, 0%, 0%);
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(60, 9.1%, 97.8%);
   --ring: hsl(207, 90%, 54%);
@@ -38,12 +38,12 @@
   --card-foreground: hsl(0, 0%, 98%);
   --border: hsl(240, 3.7%, 15.9%);
   --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(25, 95%, 53%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(240, 3.7%, 15.9%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(240, 3.7%, 15.9%);
-  --accent-foreground: hsl(0, 0%, 98%);
+  --primary: hsl(320, 100%, 50%);
+  --primary-foreground: hsl(0, 0%, 0%);
+  --secondary: hsl(0, 0%, 10%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(320, 100%, 50%);
+  --accent-foreground: hsl(0, 0%, 0%);
   --destructive: hsl(0, 62.8%, 30.6%);
   --destructive-foreground: hsl(0, 0%, 98%);
   --ring: hsl(207, 90%, 54%);
@@ -58,6 +58,7 @@
   body {
     @apply antialiased bg-background text-foreground;
     font-family: 'Montserrat', sans-serif;
+    font-weight: 300;
   }
   
   h1, h2, h3, h4, h5, h6, .title-font {
@@ -74,10 +75,52 @@
   }
   
   .logo-style {
-    background: linear-gradient(135deg, hsl(25, 95%, 53%) 0%, hsl(35, 85%, 48%) 100%);
+    background: linear-gradient(135deg, hsl(320, 100%, 50%) 0%, hsl(340, 85%, 48%) 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
   }
+}
+
+/* Striking black and flashing pink color palette */
+.text-ff-primary {
+  color: hsl(320, 100%, 50%);
+}
+
+.bg-ff-primary {
+  background-color: hsl(320, 100%, 50%);
+}
+
+.border-ff-primary {
+  border-color: hsl(320, 100%, 50%);
+}
+
+.text-ff-primary\/10 {
+  color: hsl(320, 100%, 50%, 0.1);
+}
+
+.bg-ff-primary\/10 {
+  background-color: hsl(320, 100%, 50%, 0.1);
+}
+
+.border-ff-primary\/20 {
+  border-color: hsl(320, 100%, 50%, 0.2);
+}
+
+/* Typography classes */
+.font-secondary-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+}
+
+/* Scrollable containers */
+.scrollable-container {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.scrollable-popup {
+  max-height: 70vh;
+  overflow-y: auto;
 }

@@ -293,6 +293,11 @@ export const translations = {
     selectRide: 'Seleziona passaggio',
     createNewRide: 'Crea nuovo passaggio',
     sendInvitations: 'Invia inviti',
+    deleteRide: 'Elimina passaggio',
+    deleteRequest: 'Elimina richiesta',
+    confirmDelete: 'Conferma eliminazione',
+    deleteRideConfirm: 'Sei sicuro di voler eliminare questo passaggio?',
+    deleteRequestConfirm: 'Sei sicuro di voler eliminare questa richiesta?',
     
     // Common
     loading: "Caricamento...",

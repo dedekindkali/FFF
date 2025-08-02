@@ -5,11 +5,13 @@ This is a full-stack event management application for FroForForno, designed for 
 The system features a modern React frontend with shadcn/ui components and a Node.js/Express backend, using PostgreSQL with Drizzle ORM for data persistence. The application supports both regular attendees and administrators, with role-based access control for management features.
 
 ## Recent Updates (August 2025)
-- **Ride System Improvements**: Fixed server errors in ride display API, enhanced ride coordination with real-time join request notifications
-- **Navigation Enhancement**: Added Admin section to navigation menu for easy administrative access
-- **User Experience**: Implemented automatic redirect to dashboard after attendance form submission
-- **Interactive Ride Matching**: Added ability to offer rides directly from ride requests with improved UI/UX
-- **Comprehensive Request Tracking**: Four-tab ride system with personal request status tracking
+- **Design System Overhaul**: Implemented striking black and flashing pink color palette with proper typography hierarchy
+- **Typography Enhancement**: Hours font for main titles/account names, Montserrat Light for regular text, Montserrat Medium for secondary titles
+- **Delete Functionality**: Added ability to delete both ride offers and ride requests with proper authorization
+- **Participants List Fix**: Resolved display issues with participants list showing properly
+- **Italian Localization**: Extended Italian translations to include attendance details and new UI features
+- **Scrollable UI**: Made panels and pop-ups scrollable when content exceeds screen size
+- **Interactive Ride System**: Enhanced ride coordination with notifications and modification capabilities
 
 # User Preferences
 

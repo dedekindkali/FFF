@@ -530,6 +530,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete ride routes
+  app.delete("/api/rides/:rideId", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const rideId = parseInt(req.params.rideId);
+      const ride = await storage.getRide(rideId);
+      
+      if (!ride || ride.driverId !== userId) {
+        return res.status(403).json({ message: "Not authorized to delete this ride" });
+      }
+
+      await storage.deleteRide(rideId);
+      res.json({ message: "Ride deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting ride:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Delete ride request routes
+  app.delete("/api/ride-requests/:requestId", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const requestId = parseInt(req.params.requestId);
+      const request = await storage.getRideRequest(requestId);
+      
+      if (!request || request.requesterId !== userId) {
+        return res.status(403).json({ message: "Not authorized to delete this request" });
+      }
+
+      await storage.deleteRideRequest(requestId);
+      res.json({ message: "Ride request deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting ride request:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
