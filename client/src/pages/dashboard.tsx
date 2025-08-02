@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Car, Utensils, Users, CalendarPlus, CarFront, Leaf, MapPin, Clock, User } from "lucide-react";
+import { Calendar, Car, Utensils, Users, CalendarPlus, CarFront, Leaf, MapPin, Clock, User, Bell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     queryKey: ['/api/notifications'],
   });
 
+  const { data: rideInvitationsData } = useQuery({
+    queryKey: ['/api/ride-invitations'],
+  });
+
   const attendance = (attendanceData as any)?.attendance;
   const rides = (ridesData as any)?.rides || [];
   const requests = (requestsData as any)?.requests || [];
@@ -47,6 +51,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const currentUser = (authData as any)?.user;
   const notifications = (notificationsData as any)?.notifications || [];
   const unreadNotifications = notifications.filter((n: any) => !n.isRead);
+  const rideInvitations = (rideInvitationsData as any)?.invitations || [];
+  const pendingInvitations = rideInvitations.filter((inv: any) => inv.status === 'pending');
 
 
 
@@ -173,6 +179,21 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           `Departure: ${acceptedJoinRequest.ride.departureTime}`
         ],
         color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+      };
+    }
+
+    // Check if user has pending ride invitations
+    if (pendingInvitations.length > 0) {
+      return {
+        type: "invitation-pending",
+        icon: Bell,
+        title: `${pendingInvitations.length} Ride Invitation${pendingInvitations.length > 1 ? 's' : ''}`,
+        details: pendingInvitations.slice(0, 2).map((inv: any) => 
+          `${inv.inviter.username}: ${inv.ride.departure} → ${inv.ride.destination}`
+        ),
+        color: "bg-ff-primary/10 text-ff-primary dark:bg-ff-primary/20 dark:text-ff-primary",
+        hasNotifications: true,
+        notificationCount: pendingInvitations.length
       };
     }
 
@@ -316,7 +337,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               </Badge>
             </div>
             <div className="space-y-2">
-              {rideInfo.details.map((detail, index) => (
+              {rideInfo.details.map((detail: string, index: number) => (
                 <div key={index} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                   <span>{detail}</span>

@@ -45,6 +45,7 @@ export interface IStorage {
   createRideInvitation(invitation: InsertRideInvitation): Promise<RideInvitation>;
   getRideInvitations(userId: number): Promise<Array<RideInvitation & { ride: Ride & { driver: User }; inviter: User }>>;
   respondToRideInvitation(invitationId: number, status: string): Promise<void>;
+  clearNotificationsForInvitation(invitationId: number): Promise<void>;
   
   // Admin methods
   deleteUser(userId: number): Promise<void>;
@@ -384,6 +385,27 @@ export class DatabaseStorage implements IStorage {
         respondedAt: new Date()
       })
       .where(eq(rideInvitations.id, invitationId));
+  }
+
+  async clearNotificationsForInvitation(invitationId: number): Promise<void> {
+    // Get the invitation details to find related notifications
+    const [invitation] = await db
+      .select()
+      .from(rideInvitations)
+      .where(eq(rideInvitations.id, invitationId));
+    
+    if (invitation) {
+      // Clear notifications related to this ride invitation (ride offers)
+      await db
+        .delete(rideNotifications)
+        .where(
+          and(
+            eq(rideNotifications.userId, invitation.inviteeId),
+            eq(rideNotifications.rideId, invitation.rideId),
+            eq(rideNotifications.type, 'ride_offer')
+          )
+        );
+    }
   }
 
   // Admin methods

@@ -192,7 +192,14 @@ export function Rides() {
           <TabsTrigger value="available">{t('availableRides')}</TabsTrigger>
           <TabsTrigger value="requests">{t('requestedRides')}</TabsTrigger>
           <TabsTrigger value="join-requests">{t('joinRequests')}</TabsTrigger>
-          <TabsTrigger value="invitations">Ride Invitations</TabsTrigger>
+          <TabsTrigger value="invitations" className="relative">
+            Ride Invitations
+            {rideInvitations.filter((inv: any) => inv.status === 'pending').length > 0 && (
+              <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {rideInvitations.filter((inv: any) => inv.status === 'pending').length}
+              </div>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="my-requests">{t('myRequests')}</TabsTrigger>
         </TabsList>
         

@@ -675,6 +675,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.respondToRideInvitation(invitationId, status);
 
+      // Clear related notifications
+      await storage.clearNotificationsForInvitation(invitationId);
+
       // If accepted, add user to the ride (create join request)
       if (status === 'accepted') {
         await storage.createRideJoinRequest({
