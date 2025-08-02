@@ -15,6 +15,7 @@ The system features a modern React frontend with shadcn/ui components and a Node
 - **Separate Admin System**: Implemented completely independent admin authentication and interface
 - **Admin User Management**: Fixed admin user deletion with comprehensive foreign key handling
 - **Streamlined Admin Access**: Admin login now requires only password, goes directly to admin panel
+- **Simplified Signup**: Removed email field from signup form for streamlined user registration
 
 # User Preferences
 

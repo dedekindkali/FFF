@@ -21,7 +21,6 @@ export function Login({ onLogin, onSignUp, onAdminLogin }: LoginProps) {
   const [username, setUsername] = useState("");
   const [signUpData, setSignUpData] = useState({
     username: "",
-    email: "",
     phone: ""
   });
   const [adminPassword, setAdminPassword] = useState("");
@@ -121,7 +120,6 @@ export function Login({ onLogin, onSignUp, onAdminLogin }: LoginProps) {
     if (signUpData.username.trim()) {
       const userData = {
         username: signUpData.username.trim(),
-        email: signUpData.email.trim() || null,
         phone: signUpData.phone.trim() || null
       };
       signUpMutation.mutate(userData);
@@ -209,18 +207,7 @@ export function Login({ onLogin, onSignUp, onAdminLogin }: LoginProps) {
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor="signup-email">{t('email')} {t('contactOptional')}</Label>
-                    <Input
-                      id="signup-email"
-                      name="signup-email"
-                      type="email"
-                      className="mt-1"
-                      placeholder={t('enterEmail')}
-                      value={signUpData.email}
-                      onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
-                    />
-                  </div>
+
 
                   <div>
                     <Label htmlFor="signup-phone">{t('phone')} {t('contactOptional')}</Label>
