@@ -36,7 +36,6 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
     { id: 'attendance', label: t('attendance'), icon: Calendar },
     { id: 'participants', label: t('participants'), icon: Users },
     { id: 'rides', label: t('rides'), icon: Car },
-    { id: 'admin', label: t('admin'), icon: Settings },
   ];
 
   const handleNavigation = (view: string) => {
@@ -66,7 +65,6 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
         {/* Logo */}
         <div className="flex items-center space-x-3">
           <img src={logoPath} alt="FroForForno" className="h-8 w-auto" />
-          <span className="text-xl font-bold text-gray-900 dark:text-white">FroForForno</span>
         </div>
 
         {/* Desktop Navigation */}

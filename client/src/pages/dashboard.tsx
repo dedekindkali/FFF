@@ -241,8 +241,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h2 className="text-3xl font-display font-bold text-gray-900 dark:text-white">{currentUser?.username || t('welcomeBack')}</h2>
-        <p className="mt-1 text-sm font-light text-gray-600 dark:text-gray-400">{t('eventDates')} • Gestisci la tua partecipazione e preferenze</p>
+        <h2 className="text-3xl title-font text-gray-900 dark:text-white">{currentUser?.username || t('welcomeBack')}</h2>
+        <p className="mt-1 text-sm body-text text-gray-600 dark:text-gray-400">{t('eventDates')} • Gestisci la tua partecipazione e preferenze</p>
       </div>
 
       {/* Notifications Section */}
@@ -250,13 +250,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         <div className="bg-ff-primary/10 border border-ff-primary/20 rounded-lg p-4 mb-8">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 bg-ff-primary rounded-full animate-pulse" />
-            <h3 className="font-display font-bold text-ff-primary">
+            <h3 className="subtitle-font text-ff-primary">
               {t('notifications')} ({unreadNotifications.length})
             </h3>
           </div>
           <div className="space-y-2 max-h-32 overflow-y-auto">
             {unreadNotifications.slice(0, 3).map((notification: any) => (
-              <div key={notification.id} className="text-sm font-light text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-800/50 p-2 rounded">
+              <div key={notification.id} className="text-sm body-text text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-800/50 p-2 rounded">
                 {notification.message}
               </div>
             ))}
@@ -270,17 +270,17 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="relative p-2 bg-ff-primary/10 rounded-lg">
+              <div className="relative p-3 bg-gradient-to-br from-ff-primary/20 to-black/10 dark:from-ff-primary/30 dark:to-black/20 rounded-xl border-2 border-ff-primary/20">
                 <Car className="h-6 w-6 text-ff-primary" />
                 {rideInfo?.hasNotifications && (
-                  <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <div className="absolute -top-2 -right-2 bg-ff-primary text-black text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center animate-pulse">
                     {rideInfo.notificationCount}
                   </div>
                 )}
               </div>
               <div className="ml-4">
-                <p className="text-sm font-secondary-title text-gray-600 dark:text-gray-400">{t('rideCoordination')}</p>
-                <p className="text-lg font-light text-gray-900 dark:text-white">
+                <p className="text-sm subtitle-font text-gray-600 dark:text-gray-400">{t('rideCoordination')}</p>
+                <p className="text-lg body-text text-gray-900 dark:text-white">
                   {rideInfo ? rideInfo.title : t('noRideCoordination')}
                 </p>
               </div>
@@ -291,12 +291,12 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                <Utensils className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="p-3 bg-gradient-to-br from-black/10 to-ff-primary/20 dark:from-black/20 dark:to-ff-primary/30 rounded-xl border-2 border-black/20">
+                <Utensils className="h-6 w-6 text-black dark:text-white" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('dietary')}</p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
+                <p className="text-sm subtitle-font text-gray-600 dark:text-gray-400">{t('dietary')}</p>
+                <p className="text-sm body-text text-gray-900 dark:text-white line-clamp-2">
                   {getDietaryStatus()}
                 </p>
               </div>

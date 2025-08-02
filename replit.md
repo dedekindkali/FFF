@@ -16,6 +16,10 @@ The system features a modern React frontend with shadcn/ui components and a Node
 - **Admin User Management**: Fixed admin user deletion with comprehensive foreign key handling
 - **Streamlined Admin Access**: Admin login now requires only password, goes directly to admin panel
 - **Simplified Signup**: Removed email field from signup form for streamlined user registration
+- **Typography System**: Implemented Hours font for page titles and usernames, Montserrat for other text elements
+- **UI Refinements**: Removed main title from header, cleaned up navigation menu, removed text from ride action buttons
+- **Dashboard Redesign**: Updated detail panels with pink-black gradient styling and proper font hierarchy
+- **Authentication UX**: Removed main title, formatted subtitle on two lines for better visual impact
 
 # User Preferences
 

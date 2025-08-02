@@ -512,11 +512,10 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModify
               <Button
                 variant="outline"
                 onClick={() => onModifyRide(ride)}
-                className="flex-1 text-ff-primary border-ff-primary hover:bg-ff-primary hover:text-white"
+                className="text-ff-primary border-ff-primary hover:bg-ff-primary hover:text-white"
                 size="sm"
               >
-                <Edit className="h-4 w-4 mr-1" />
-                {t('modifyRide')}
+                <Edit className="h-4 w-4" />
               </Button>
             )}
             {currentUser && ride.driver.id === currentUser.id && onModifyRide && (
@@ -532,11 +531,9 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModify
                     }
                   }
                 }}
-                className="flex-1"
                 size="sm"
               >
-                <Trash2 className="h-4 w-4 mr-1" />
-                {t('deleteRide')}
+                <Trash2 className="h-4 w-4" />
               </Button>
             )}
             {(!currentUser || ride.driver.id !== currentUser.id) && (

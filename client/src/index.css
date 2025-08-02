@@ -61,9 +61,19 @@
     font-weight: 300;
   }
   
-  h1, h2, h3, h4, h5, h6, .title-font {
+  h1, h2, h3, h4, h5, h6, .title-font, .username-font {
     font-family: 'Hours', serif;
     font-weight: 700;
+  }
+  
+  .subtitle-font {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+  }
+  
+  .body-text {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 300;
   }
   
   .btn-primary {

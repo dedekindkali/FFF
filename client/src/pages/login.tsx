@@ -138,8 +138,10 @@ export function Login({ onLogin, onSignUp, onAdminLogin }: LoginProps) {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <img src={logoPath} alt="FroForForno Logo" className="mx-auto h-16 w-auto mb-4" />
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">FroForForno</h2>
-          <p className="mt-1 text-lg text-gray-700 dark:text-gray-300 font-semibold">Un'Unica Festa - Una Festa Unica</p>
+          <p className="mt-1 text-lg text-gray-700 dark:text-gray-300 font-medium leading-tight">
+            un'unica festa<br />
+            una festa unica
+          </p>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{t('eventDates')}</p>
         </div>
         
@@ -154,13 +156,13 @@ export function Login({ onLogin, onSignUp, onAdminLogin }: LoginProps) {
               
               <TabsContent value="signin" className="space-y-4">
                 <div className="text-center">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{t('welcomeBack')}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('signInDesc')}</p>
+                  <h3 className="text-xl subtitle-font text-gray-900 dark:text-white">{t('welcomeBack')}</h3>
+                  <p className="text-sm body-text text-gray-600 dark:text-gray-400 mt-1">{t('signInDesc')}</p>
                 </div>
                 
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div>
-                    <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label htmlFor="username" className="block text-sm subtitle-font text-gray-700 dark:text-gray-300">
                       {t('username')}
                     </label>
                     <Input
@@ -188,8 +190,8 @@ export function Login({ onLogin, onSignUp, onAdminLogin }: LoginProps) {
               
               <TabsContent value="signup" className="space-y-4">
                 <div className="text-center">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{t('createAccount')}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('signUpDesc')}</p>
+                  <h3 className="text-xl subtitle-font text-gray-900 dark:text-white">{t('createAccount')}</h3>
+                  <p className="text-sm body-text text-gray-600 dark:text-gray-400 mt-1">{t('signUpDesc')}</p>
                 </div>
                 
                 <form onSubmit={handleSignUp} className="space-y-4">
