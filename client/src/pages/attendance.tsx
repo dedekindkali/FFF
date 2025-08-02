@@ -149,7 +149,7 @@ export function Attendance({ onNavigate }: { onNavigate?: (view: string) => void
           <CardContent className="p-6">
             <h3 className="text-lg subtitle-font text-gray-900 dark:text-white mb-4 flex items-center">
               <Calendar className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
-              Wednesday, August 28
+              Thursday, August 28
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
@@ -177,7 +177,7 @@ export function Attendance({ onNavigate }: { onNavigate?: (view: string) => void
           <CardContent className="p-6">
             <h3 className="text-lg subtitle-font text-gray-900 dark:text-white mb-4 flex items-center">
               <Calendar className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
-              Thursday, August 29
+              Friday, August 29
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
@@ -205,7 +205,7 @@ export function Attendance({ onNavigate }: { onNavigate?: (view: string) => void
           <CardContent className="p-6">
             <h3 className="text-lg subtitle-font text-gray-900 dark:text-white mb-4 flex items-center">
               <Calendar className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
-              Friday, August 30
+              Saturday, August 30
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
