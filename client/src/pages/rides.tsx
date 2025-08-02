@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Car, Plus, MapPin, Clock, Users, MessageSquare, Calendar } from "lucide-react";
+import { Car, Plus, MapPin, Clock, Users, MessageSquare, Calendar, User } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -59,6 +59,7 @@ export function Rides() {
       apiRequest('POST', `/api/rides/${rideId}/request-join`, { message }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ride-join-status'] });
       toast({
         title: "Success",
         description: "Join request sent successfully!",
@@ -70,7 +71,12 @@ export function Rides() {
     queryKey: ['/api/rides/join-requests'],
   });
 
+  const { data: userJoinStatusData } = useQuery({
+    queryKey: ['/api/ride-join-status'],
+  });
+
   const joinRequests = (joinRequestsData as any)?.requests || [];
+  const userJoinRequests = (userJoinStatusData as any)?.joinRequests || [];
 
   const respondToJoinRequestMutation = useMutation({
     mutationFn: ({ requestId, status }: { requestId: number; status: string }) => 
@@ -78,6 +84,7 @@ export function Rides() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/rides/join-requests'] });
       queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ride-join-status'] });
       toast({
         title: "Success",
         description: "Response sent successfully!",
@@ -119,10 +126,11 @@ export function Rides() {
       </div>
 
       <Tabs defaultValue="available" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="available">{t('availableRides')}</TabsTrigger>
           <TabsTrigger value="requests">{t('rideRequests')}</TabsTrigger>
           <TabsTrigger value="join-requests">Join Requests</TabsTrigger>
+          <TabsTrigger value="my-requests">My Requests</TabsTrigger>
         </TabsList>
         
         <TabsContent value="available" className="space-y-4">
@@ -141,7 +149,26 @@ export function Rides() {
         <TabsContent value="requests" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {requests.map((request: RideRequest & { requester: any }) => (
-              <RequestCard key={request.id} request={request} />
+              <RequestCard 
+                key={request.id} 
+                request={request} 
+                onOfferRide={(requestId) => {
+                  // Create a ride offer based on the request
+                  const rideData = {
+                    tripType: request.tripType,
+                    eventDay: request.eventDay,
+                    departure: request.tripType === 'departure' ? 'Massello' : request.departure,
+                    destination: request.tripType === 'departure' ? request.destination : 'Massello',
+                    departureTime: request.preferredTime || '',
+                    totalSeats: 4,
+                    availableSeats: 4,
+                    notes: `Offering ride for ${request.requester.username}'s request`,
+                    driverId: 0, // Will be set by backend
+                  };
+                  
+                  offerRideMutation.mutate(rideData);
+                }}
+              />
             ))}
           </div>
         </TabsContent>
@@ -154,6 +181,17 @@ export function Rides() {
                 request={request} 
                 onRespond={(status) => respondToJoinRequestMutation.mutate({ requestId: request.id, status })}
                 isResponding={respondToJoinRequestMutation.isPending}
+              />
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="my-requests" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {userJoinRequests.map((request: any) => (
+              <UserJoinRequestCard 
+                key={request.id} 
+                request={request} 
               />
             ))}
           </div>
@@ -222,11 +260,11 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin }: { ride: Ride & { dr
             {ride.eventDay === 'day1' ? 'Aug 28' : ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}
           </div>
 
-          {ride.passengers && ride.passengers.length > 0 && (
+          {(ride as any).passengers && (ride as any).passengers.length > 0 && (
             <div className="text-sm">
               <p className="text-gray-600 dark:text-gray-400 mb-1">Passengers:</p>
               <div className="flex flex-wrap gap-1">
-                {ride.passengers.map((passenger: any) => (
+                {(ride as any).passengers.map((passenger: any) => (
                   <span 
                     key={passenger.id}
                     className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded text-xs"
@@ -295,39 +333,115 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin }: { ride: Ride & { dr
   );
 }
 
-function RequestCard({ request }: { request: RideRequest & { requester: any } }) {
+function RequestCard({ request, onOfferRide }: { 
+  request: RideRequest & { requester: any }, 
+  onOfferRide?: (requestId: number) => void 
+}) {
   const { t } = useLanguage();
+  const [showOfferDialog, setShowOfferDialog] = useState(false);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">{request.requester.username}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-          <MapPin className="h-4 w-4 mr-1" />
-          {request.departure} → {request.destination}
-        </div>
-        
-        {request.preferredTime && (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between text-lg">
+            <div className="flex items-center">
+              <User className="h-5 w-5 mr-2" />
+              {request.requester.username}
+            </div>
+            <div className="flex items-center space-x-2">
+              {request.tripType === 'arrival' && (
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Arrival</span>
+              )}
+              {request.tripType === 'departure' && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Departure</span>
+              )}
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
           <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-            <Clock className="h-4 w-4 mr-1" />
-            {request.preferredTime}
+            <MapPin className="h-4 w-4 mr-1" />
+            {request.departure} → {request.destination}
           </div>
-        )}
-        
-        {request.notes && (
-          <div className="flex items-start text-sm text-gray-600 dark:text-gray-400">
-            <MessageSquare className="h-4 w-4 mr-1 mt-0.5" />
-            <span className="text-xs">{request.notes}</span>
+          
+          <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+            <Calendar className="h-4 w-4 mr-1" />
+            {request.eventDay === 'day1' ? 'Aug 28' : request.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}
           </div>
-        )}
-        
-        <div className="text-xs text-gray-500 dark:text-gray-500">
-          Status: {request.status}
-        </div>
-      </CardContent>
-    </Card>
+          
+          {request.preferredTime && (
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <Clock className="h-4 w-4 mr-1" />
+              {request.preferredTime}
+            </div>
+          )}
+          
+          {request.notes && (
+            <div className="flex items-start text-sm text-gray-600 dark:text-gray-400">
+              <MessageSquare className="h-4 w-4 mr-1 mt-0.5" />
+              <span className="text-xs">{request.notes}</span>
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-gray-500 dark:text-gray-500">
+              Status: <span className={`font-medium ${
+                request.status === 'accepted' ? 'text-green-600' : 
+                request.status === 'declined' ? 'text-red-600' : 
+                'text-yellow-600'
+              }`}>{request.status}</span>
+            </div>
+            
+            {request.status === 'open' && onOfferRide && (
+              <Button 
+                size="sm" 
+                onClick={() => setShowOfferDialog(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Car className="h-4 w-4 mr-1" />
+                Offer Ride
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={showOfferDialog} onOpenChange={setShowOfferDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Offer Ride to {request.requester.username}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <p><strong>Requested Route:</strong> {request.departure} → {request.destination}</p>
+              <p><strong>Trip Type:</strong> {request.tripType === 'arrival' ? 'Arrival' : 'Departure'}</p>
+              <p><strong>Day:</strong> {request.eventDay === 'day1' ? 'Aug 28' : request.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}</p>
+              {request.preferredTime && <p><strong>Preferred Time:</strong> {request.preferredTime}</p>}
+            </div>
+            
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              Click "Offer Ride" to create a ride offer that matches this request. This will help connect you with {request.requester.username}.
+            </p>
+            
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={() => setShowOfferDialog(false)} className="w-full">
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  onOfferRide!(request.id);
+                  setShowOfferDialog(false);
+                }} 
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                Offer Ride
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -729,5 +843,61 @@ function RequestRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRid
         </Button>
       </form>
     </DialogContent>
+  );
+}
+
+function UserJoinRequestCard({ request }: { request: any }) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'accepted': return 'text-green-600 bg-green-100';
+      case 'declined': return 'text-red-600 bg-red-100';
+      default: return 'text-yellow-600 bg-yellow-100';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'accepted': return 'Accepted';
+      case 'declined': return 'Declined';
+      default: return 'Pending';
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          <div className="flex items-center justify-between">
+            <span>Request to Join</span>
+            <span className={`text-xs px-2 py-1 rounded ${getStatusColor(request.status)}`}>
+              {getStatusText(request.status)}
+            </span>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          <p><strong>Driver:</strong> {request.ride.driver.username}</p>
+          <p><strong>Route:</strong> {request.ride.departure} → {request.ride.destination}</p>
+          <p><strong>Time:</strong> {request.ride.departureTime}</p>
+          <p><strong>Trip Type:</strong> {request.ride.tripType === 'arrival' ? 'Arrival' : 'Departure'}</p>
+          <p><strong>Day:</strong> {request.ride.eventDay === 'day1' ? 'Aug 28' : request.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}</p>
+        </div>
+        
+        {request.message && (
+          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Your message:</strong> {request.message}
+            </p>
+          </div>
+        )}
+        
+        {request.respondedAt && (
+          <div className="text-xs text-gray-500 dark:text-gray-500">
+            Response received: {new Date(request.respondedAt).toLocaleDateString()}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

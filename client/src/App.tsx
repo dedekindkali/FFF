@@ -66,7 +66,7 @@ function AppContent() {
       case 'dashboard':
         return <Dashboard onNavigate={setCurrentView} />;
       case 'attendance':
-        return <Attendance />;
+        return <Attendance onNavigate={setCurrentView} />;
       case 'participants':
         return <Participants />;
       case 'rides':

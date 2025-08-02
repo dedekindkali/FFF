@@ -9,7 +9,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/components/language-provider";
 
-export function Attendance() {
+export function Attendance({ onNavigate }: { onNavigate?: (view: string) => void }) {
   const [formData, setFormData] = useState({
     // Day 1 - August 28
     day1Breakfast: false,
@@ -79,6 +79,10 @@ export function Attendance() {
       toast({
         title: t('attendanceSaved'),
       });
+      // Redirect to dashboard after successful save
+      if (onNavigate) {
+        setTimeout(() => onNavigate('dashboard'), 1000);
+      }
     },
     onError: () => {
       toast({
