@@ -147,7 +147,7 @@ export function Attendance({ onNavigate }: { onNavigate?: (view: string) => void
         {/* Day 1: August 28 */}
         <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+            <h3 className="text-lg subtitle-font text-gray-900 dark:text-white mb-4 flex items-center">
               <Calendar className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
               Wednesday, August 28
             </h3>
@@ -175,7 +175,7 @@ export function Attendance({ onNavigate }: { onNavigate?: (view: string) => void
         {/* Day 2: August 29 */}
         <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+            <h3 className="text-lg subtitle-font text-gray-900 dark:text-white mb-4 flex items-center">
               <Calendar className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
               Thursday, August 29
             </h3>
@@ -203,7 +203,7 @@ export function Attendance({ onNavigate }: { onNavigate?: (view: string) => void
         {/* Day 3: August 30 */}
         <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+            <h3 className="text-lg subtitle-font text-gray-900 dark:text-white mb-4 flex items-center">
               <Calendar className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
               Friday, August 30
             </h3>
@@ -231,7 +231,7 @@ export function Attendance({ onNavigate }: { onNavigate?: (view: string) => void
         {/* Dietary Preferences */}
         <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+            <h3 className="text-lg subtitle-font text-gray-900 dark:text-white mb-4 flex items-center">
               <Utensils className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
               {t('dietary')}
             </h3>
@@ -271,7 +271,7 @@ export function Attendance({ onNavigate }: { onNavigate?: (view: string) => void
         {/* Additional Notes */}
         <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+            <h3 className="text-lg subtitle-font text-gray-900 dark:text-white mb-4 flex items-center">
               <StickyNote className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
               {t('additionalNotes')}
             </h3>
