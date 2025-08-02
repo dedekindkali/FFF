@@ -446,12 +446,7 @@ export class DatabaseStorage implements IStorage {
     return request || undefined;
   }
 
-  async updateRideRequestStatus(requestId: number, status: string): Promise<void> {
-    await db
-      .update(rideRequests)
-      .set({ status })
-      .where(eq(rideRequests.id, requestId));
-  }
+
 }
 
 export const storage = new DatabaseStorage();
