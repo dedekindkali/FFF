@@ -291,8 +291,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="p-3 bg-gradient-to-br from-black/10 to-ff-primary/20 dark:from-black/20 dark:to-ff-primary/30 rounded-xl border-2 border-black/20">
-                <Utensils className="h-6 w-6 text-black dark:text-white" />
+              <div className="p-3 bg-gradient-to-br from-ff-primary/20 to-black/10 dark:from-ff-primary/30 dark:to-black/20 rounded-xl border-2 border-ff-primary/20">
+                <Utensils className="h-6 w-6 text-ff-primary" />
               </div>
               <div className="ml-4">
                 <p className="text-sm subtitle-font text-gray-600 dark:text-gray-400">{t('dietary')}</p>
