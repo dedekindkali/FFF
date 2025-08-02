@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Car, Plus, MapPin, Clock, Users, MessageSquare, Calendar, User } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -128,9 +128,9 @@ export function Rides() {
       <Tabs defaultValue="available" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="available">{t('availableRides')}</TabsTrigger>
-          <TabsTrigger value="requests">Requested Rides</TabsTrigger>
-          <TabsTrigger value="join-requests">Join Requests</TabsTrigger>
-          <TabsTrigger value="my-requests">My Requests</TabsTrigger>
+          <TabsTrigger value="requests">{t('requestedRides')}</TabsTrigger>
+          <TabsTrigger value="join-requests">{t('joinRequests')}</TabsTrigger>
+          <TabsTrigger value="my-requests">{t('myRequests')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="available" className="space-y-4">
@@ -289,7 +289,7 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin }: { ride: Ride & { dr
             className="w-full"
             size="sm"
           >
-            {ride.availableSeats === 0 ? "Full" : "Request to Join"}
+            {ride.availableSeats === 0 ? t('full') : t('requestToJoin')}
           </Button>
         </CardContent>
       </Card>
@@ -297,7 +297,10 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin }: { ride: Ride & { dr
       <Dialog open={showJoinDialog} onOpenChange={setShowJoinDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Request to Join Ride</DialogTitle>
+            <DialogTitle>{t('requestToJoin')}</DialogTitle>
+            <DialogDescription>
+              {t('sendJoinRequestDescription')}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -308,22 +311,22 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin }: { ride: Ride & { dr
             </div>
             
             <div>
-              <Label htmlFor="join-message">Message (optional)</Label>
+              <Label htmlFor="join-message">{t('joinMessage')}</Label>
               <Textarea
                 id="join-message"
                 value={joinMessage}
                 onChange={(e) => setJoinMessage(e.target.value)}
-                placeholder="Let the driver know anything relevant..."
+                placeholder={t('joinMessagePlaceholder')}
                 className="mt-1"
               />
             </div>
             
             <div className="flex space-x-2">
               <Button variant="outline" onClick={() => setShowJoinDialog(false)} className="w-full">
-                Cancel
+                {t('cancel')}
               </Button>
               <Button onClick={handleConfirmJoin} disabled={isRequestingJoin} className="w-full">
-                Send Request
+                {t('sendRequest')}
               </Button>
             </div>
           </div>
@@ -411,6 +414,9 @@ function RequestCard({ request, onOfferRide }: {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Offer Ride to {request.requester.username}</DialogTitle>
+            <DialogDescription>
+              Create a ride offer that matches this request
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -545,6 +551,9 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide)
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
         <DialogTitle>{t('offerRide')}</DialogTitle>
+        <DialogDescription>
+          {t('offerRideDescription')}
+        </DialogDescription>
       </DialogHeader>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -719,6 +728,9 @@ function RequestRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRid
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
         <DialogTitle>{t('requestRide')}</DialogTitle>
+        <DialogDescription>
+          {t('requestRideDescription')}
+        </DialogDescription>
       </DialogHeader>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
