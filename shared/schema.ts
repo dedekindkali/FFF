@@ -32,6 +32,7 @@ export const attendanceRecords = pgTable("attendance_records", {
   transportationStatus: varchar("transportation_status", { length: 50 }), // 'offering', 'needed', 'own'
   transportationDetails: text("transportation_details"),
   // Dietary preferences
+  omnivore: boolean("omnivore").default(false).notNull(),
   vegetarian: boolean("vegetarian").default(false).notNull(),
   vegan: boolean("vegan").default(false).notNull(),
   glutenFree: boolean("gluten_free").default(false).notNull(),

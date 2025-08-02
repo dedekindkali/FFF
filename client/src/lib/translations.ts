@@ -50,6 +50,7 @@ export const translations = {
     dinner: "Dinner",
     overnight: "Overnight Stay",
     dietary: "Dietary Preferences",
+    omnivore: "Omnivore",
     vegetarian: "Vegetarian",
     vegan: "Vegan", 
     glutenFree: "Gluten-free",
@@ -68,6 +69,29 @@ export const translations = {
     ridesSubtitle: "Offer or request rides to the event",
     offerRide: "Offer a Ride",
     requestRide: "Request a Ride",
+    
+    // Ride coordination
+    offeringRide: "Offering Ride",
+    requestingRide: "Requesting Ride",
+    joinedRide: "Joined Ride",
+    noRideCoordination: "No Ride Coordination",
+    rideDetails: "Ride Details",
+    attendanceDetails: "Attendance Details",
+    manageRides: "Manage Rides",
+    adminPanel: "Admin Panel",
+    
+    // Participants page
+    participantsSubtitle: "View all registered participants",
+    searchParticipants: "Search participants...",
+    filterByDay: "Filter by day",
+    filterByRide: "Filter by ride",
+    allDays: "All days",
+    allRideStatuses: "All ride statuses",
+    showingParticipants: "Showing",
+    attendingDays: "Attending Days",
+    noAttendance: "No attendance",
+    noParticipantsFound: "No participants found",
+    noParticipantsFoundDesc: "Try adjusting your search filters",
     
     // Common
     loading: "Loading...",
@@ -129,6 +153,7 @@ export const translations = {
     dinner: "Cena", 
     overnight: "Pernottamento",
     dietary: "Preferenze Alimentari",
+    omnivore: "Onnivoro",
     vegetarian: "Vegetariano",
     vegan: "Vegano",
     glutenFree: "Senza glutine",
@@ -147,6 +172,29 @@ export const translations = {
     ridesSubtitle: "Offri o richiedi passaggi per l'evento",
     offerRide: "Offri un Passaggio",
     requestRide: "Richiedi un Passaggio",
+    
+    // Ride coordination
+    offeringRide: "Offre Passaggio",
+    requestingRide: "Richiede Passaggio",
+    joinedRide: "In Passaggio",
+    noRideCoordination: "Nessun Coordinamento",
+    rideDetails: "Dettagli Passaggio",
+    attendanceDetails: "Dettagli Partecipazione",
+    manageRides: "Gestisci Passaggi",
+    adminPanel: "Pannello Admin",
+    
+    // Participants page
+    participantsSubtitle: "Visualizza tutti i partecipanti registrati",
+    searchParticipants: "Cerca partecipanti...",
+    filterByDay: "Filtra per giorno",
+    filterByRide: "Filtra per passaggio",
+    allDays: "Tutti i giorni",
+    allRideStatuses: "Tutti gli stati",
+    showingParticipants: "Mostrando",
+    attendingDays: "Giorni partecipazione",
+    noAttendance: "Nessuna partecipazione",
+    noParticipantsFound: "Nessun partecipante trovato",
+    noParticipantsFoundDesc: "Prova a modificare i filtri di ricerca",
     
     // Common
     loading: "Caricamento...",

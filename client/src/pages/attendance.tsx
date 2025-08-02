@@ -27,6 +27,7 @@ export function Attendance() {
     day3Dinner: false,
     day3Night: false,
     // Dietary
+    omnivore: false,
     vegetarian: false,
     vegan: false,
     glutenFree: false,
@@ -60,6 +61,7 @@ export function Attendance() {
         day3Lunch: attendance.day3Lunch || false,
         day3Dinner: attendance.day3Dinner || false,
         day3Night: attendance.day3Night || false,
+        omnivore: attendance.omnivore || false,
         vegetarian: attendance.vegetarian || false,
         vegan: attendance.vegan || false,
         glutenFree: attendance.glutenFree || false,
@@ -106,6 +108,7 @@ export function Attendance() {
       day3Lunch: false,
       day3Dinner: false,
       day3Night: false,
+      omnivore: false,
       vegetarian: false,
       vegan: false,
       glutenFree: false,
@@ -232,8 +235,9 @@ export function Attendance() {
               {t('dietary')}
             </h3>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {[
+                  { key: 'omnivore', label: t('omnivore') },
                   { key: 'vegetarian', label: t('vegetarian') },
                   { key: 'vegan', label: t('vegan') },
                   { key: 'glutenFree', label: t('glutenFree') },

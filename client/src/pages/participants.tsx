@@ -4,18 +4,74 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { Search, Car, MapPin, Users2 } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
 
 export function Participants() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dayFilter, setDayFilter] = useState("");
   const [rideFilter, setRideFilter] = useState("");
+  const { t } = useLanguage();
 
   const { data: participantsData, isLoading } = useQuery({
     queryKey: ['/api/participants'],
   });
 
+  const { data: ridesData } = useQuery({
+    queryKey: ['/api/rides'],
+  });
+
+  const { data: requestsData } = useQuery({
+    queryKey: ['/api/ride-requests'],
+  });
+
   const participants = (participantsData as any)?.participants || [];
+  const rides = (ridesData as any)?.rides || [];
+  const requests = (requestsData as any)?.requests || [];
+
+  const getRideStatus = (participant: any) => {
+    // Check if user is offering a ride
+    const offeringRide = rides.find((ride: any) => ride.driverId === participant.id);
+    if (offeringRide) {
+      return {
+        status: "offering",
+        label: t('offeringRide'),
+        color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+        details: `${offeringRide.departure} → ${offeringRide.destination}`
+      };
+    }
+
+    // Check if user has requested a ride
+    const requestingRide = requests.find((request: any) => request.requesterId === participant.id);
+    if (requestingRide) {
+      return {
+        status: "requesting",
+        label: t('requestingRide'),
+        color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+        details: `${requestingRide.departure} → ${requestingRide.destination}`
+      };
+    }
+
+    // Check if user has joined a ride
+    const joinedRide = rides.find((ride: any) => 
+      ride.passengers && ride.passengers.some((p: any) => p.id === participant.id)
+    );
+    if (joinedRide) {
+      return {
+        status: "passenger",
+        label: t('joinedRide'),
+        color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+        details: `with ${joinedRide.driverUsername}`
+      };
+    }
+
+    return {
+      status: "none",
+      label: t('noRideCoordination'),
+      color: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
+      details: ""
+    };
+  };
 
   const filteredParticipants = participants.filter((participant: any) => {
     const matchesSearch = participant.username.toLowerCase().includes(searchTerm.toLowerCase());
@@ -42,7 +98,8 @@ export function Participants() {
     
     let matchesRide = true;
     if (rideFilter && rideFilter !== 'all') {
-      matchesRide = participant.attendance?.transportationStatus === rideFilter;
+      const rideStatus = getRideStatus(participant);
+      matchesRide = rideStatus.status === rideFilter;
     }
     
     return matchesSearch && matchesDay && matchesRide;
@@ -69,41 +126,33 @@ export function Participants() {
     if (!attendance) return [];
     
     const restrictions = [];
+    if (attendance.omnivore) restrictions.push('Omnivore');
     if (attendance.vegetarian) restrictions.push('Vegetarian');
     if (attendance.vegan) restrictions.push('Vegan');
     if (attendance.glutenFree) restrictions.push('Gluten-free');
     if (attendance.dairyFree) restrictions.push('Dairy-free');
-    if (attendance.allergies) restrictions.push('Allergies');
     
-    return restrictions.length > 0 ? restrictions : ['No restrictions'];
-  };
-
-  const getTransportationStatus = (attendance: any) => {
-    if (!attendance?.transportationStatus) return 'Not specified';
-    
-    switch (attendance.transportationStatus) {
-      case 'offering': return 'Offering Rides';
-      case 'needed': return 'Need Ride';
-      case 'own': return 'Own Transport';
-      default: return 'Not specified';
+    // Default to vegan if nothing is specified
+    if (restrictions.length === 0) {
+      restrictions.push('Vegan');
     }
-  };
-
-  const getInitials = (username: string) => {
-    return username
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+    
+    return restrictions;
   };
 
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+        <div className="animate-pulse space-y-8">
+          <div className="space-y-2">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          </div>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -112,121 +161,150 @@ export function Participants() {
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Event Participants</h2>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">View all confirmed participants and their preferences</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('participants')}</h2>
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          {t('participantsSubtitle')}
+        </p>
       </div>
 
-      {/* Search and Filters */}
+      {/* Filters */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            type="text"
-            placeholder="Search participants..."
-            className="pl-10"
+            placeholder={t('searchParticipants')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
           />
         </div>
         
         <Select value={dayFilter} onValueChange={setDayFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="All Days" />
+            <SelectValue placeholder={t('filterByDay')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Days</SelectItem>
-            <SelectItem value="day1">August 28</SelectItem>
-            <SelectItem value="day2">August 29</SelectItem>
-            <SelectItem value="day3">August 30</SelectItem>
+            <SelectItem value="all">{t('allDays')}</SelectItem>
+            <SelectItem value="day1">Wednesday, Aug 28</SelectItem>
+            <SelectItem value="day2">Thursday, Aug 29</SelectItem>
+            <SelectItem value="day3">Friday, Aug 30</SelectItem>
           </SelectContent>
         </Select>
-        
+
         <Select value={rideFilter} onValueChange={setRideFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="All Ride Status" />
+            <SelectValue placeholder={t('filterByRide')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Ride Status</SelectItem>
-            <SelectItem value="offering">Offering Rides</SelectItem>
-            <SelectItem value="needed">Need Rides</SelectItem>
-            <SelectItem value="own">Own Transport</SelectItem>
+            <SelectItem value="all">{t('allRideStatuses')}</SelectItem>
+            <SelectItem value="offering">{t('offeringRide')}</SelectItem>
+            <SelectItem value="requesting">{t('requestingRide')}</SelectItem>
+            <SelectItem value="passenger">{t('joinedRide')}</SelectItem>
+            <SelectItem value="none">{t('noRideCoordination')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Participants Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredParticipants.map((participant: any) => (
-          <Card key={participant.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-            <CardContent className="p-6">
-              <div className="flex items-center mb-4">
-                <div className="h-10 w-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
-                  <span className="text-primary-600 dark:text-primary-400 font-medium">
-                    {getInitials(participant.username)}
-                  </span>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">{participant.username}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Joined {new Date(participant.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attendance</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {getAttendingDays(participant.attendance).map((day: string) => (
-                      <Badge key={day} variant="secondary" className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                        {day}
-                      </Badge>
-                    ))}
-                    {getAttendingDays(participant.attendance).length === 0 && (
-                      <Badge variant="outline" className="text-gray-500">No days selected</Badge>
-                    )}
+      {/* Participants Count */}
+      <div className="mb-6">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          {t('showingParticipants')} {filteredParticipants.length} / {participants.length}
+        </p>
+      </div>
+
+      {/* Participants List */}
+      <div className="space-y-4">
+        {filteredParticipants.map((participant: any) => {
+          const attendingDays = getAttendingDays(participant.attendance);
+          const dietaryRestrictions = getDietaryRestrictions(participant.attendance);
+          const rideStatus = getRideStatus(participant);
+
+          return (
+            <Card key={participant.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <CardContent className="p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {participant.username}
+                      </h3>
+                      {participant.isAdmin && (
+                        <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                          Admin
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Attending Days */}
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          {t('attendingDays')}
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {attendingDays.length > 0 ? (
+                            attendingDays.map((day, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {day}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              {t('noAttendance')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Ride Coordination */}
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          <Car className="h-4 w-4 inline mr-1" />
+                          {t('rideCoordination')}
+                        </p>
+                        <div className="flex flex-col gap-1">
+                          <Badge className={rideStatus.color}>
+                            {rideStatus.label}
+                          </Badge>
+                          {rideStatus.details && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {rideStatus.details}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Dietary Restrictions */}
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          {t('dietary')}
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {dietaryRestrictions.map((restriction, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {restriction}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Transportation</h4>
-                  <Badge 
-                    variant="secondary" 
-                    className={
-                      participant.attendance?.transportationStatus === 'offering' 
-                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
-                        : participant.attendance?.transportationStatus === 'needed'
-                        ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
-                    }
-                  >
-                    {getTransportationStatus(participant.attendance)}
-                  </Badge>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dietary</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {getDietaryRestrictions(participant.attendance).map((restriction: string) => (
-                      <Badge 
-                        key={restriction} 
-                        variant="secondary"
-                        className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200"
-                      >
-                        {restriction}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {filteredParticipants.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400">No participants found matching your criteria.</p>
+          <Users2 className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
+          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+            {t('noParticipantsFound')}
+          </h3>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            {t('noParticipantsFoundDesc')}
+          </p>
         </div>
       )}
     </div>
