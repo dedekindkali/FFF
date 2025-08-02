@@ -71,7 +71,7 @@ export function Attendance() {
   }, [attendanceData]);
 
   const saveMutation = useMutation({
-    mutationFn: (attendanceData: any) => apiRequest('/api/attendance', 'POST', attendanceData),
+    mutationFn: (attendanceData: any) => apiRequest('POST', '/api/attendance', attendanceData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/attendance'] });
       toast({

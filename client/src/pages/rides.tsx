@@ -31,7 +31,7 @@ export function Rides() {
   const requests = (requestsData as any)?.requests || [];
 
   const offerRideMutation = useMutation({
-    mutationFn: (rideData: InsertRide) => apiRequest('/api/rides', 'POST', rideData),
+    mutationFn: (rideData: InsertRide) => apiRequest('POST', '/api/rides', rideData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
       setShowOfferDialog(false);
@@ -43,7 +43,7 @@ export function Rides() {
   });
 
   const requestRideMutation = useMutation({
-    mutationFn: (requestData: InsertRideRequest) => apiRequest('/api/ride-requests', 'POST', requestData),
+    mutationFn: (requestData: InsertRideRequest) => apiRequest('POST', '/api/ride-requests', requestData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ride-requests'] });
       setShowRequestDialog(false);
@@ -55,7 +55,7 @@ export function Rides() {
   });
 
   const joinRideMutation = useMutation({
-    mutationFn: (rideId: number) => apiRequest(`/api/rides/${rideId}/join`, 'POST'),
+    mutationFn: (rideId: number) => apiRequest('POST', `/api/rides/${rideId}/join`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
       toast({

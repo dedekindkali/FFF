@@ -22,7 +22,7 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
   const { t } = useLanguage();
 
   const loginMutation = useMutation({
-    mutationFn: (username: string) => apiRequest('/api/auth/login', 'POST', { username }),
+    mutationFn: (username: string) => apiRequest('POST', '/api/auth/login', { username }),
     onSuccess: () => {
       toast({
         title: t('welcomeBack'),
@@ -47,7 +47,7 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
   });
 
   const signUpMutation = useMutation({
-    mutationFn: (username: string) => apiRequest('/api/auth/signup', 'POST', { username }),
+    mutationFn: (username: string) => apiRequest('POST', '/api/auth/signup', { username }),
     onSuccess: () => {
       toast({
         title: t('accountCreated'),

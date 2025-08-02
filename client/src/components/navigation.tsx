@@ -21,7 +21,7 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
   const { language, setLanguage, t } = useLanguage();
 
   const logoutMutation = useMutation({
-    mutationFn: () => apiRequest('/api/auth/logout', 'POST'),
+    mutationFn: () => apiRequest('POST', '/api/auth/logout'),
     onSuccess: () => {
       queryClient.clear();
       onLogout();
