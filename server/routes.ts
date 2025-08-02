@@ -592,22 +592,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to invite to this ride" });
       }
 
-      // Create a join request on behalf of the invited user
-      const joinRequest = await storage.createRideJoinRequest({
+      // Create a ride invitation for the passenger
+      const invitation = await storage.createRideInvitation({
         rideId,
-        requesterId: invitedUserId,
-        message: message || "You've been invited to join this ride"
+        inviterId: userId,
+        inviteeId: invitedUserId,
       });
 
-      // Create notification for the invited user
+      // Create notification for the invited user (passenger)
       const driver = await storage.getUserById(userId);
       await storage.createRideNotification({
         userId: invitedUserId,
         type: 'ride_invitation',
-        message: `${driver?.username || 'A driver'} invited you to join their ride from ${ride.departure} to ${ride.destination}`,
+        message: `${driver?.username || 'A driver'} offered you a ride from ${ride.departure} to ${ride.destination}`,
       });
 
-      res.json({ message: "Invitation sent successfully", joinRequest });
+      res.json({ message: "Ride offer sent successfully", invitation });
     } catch (error) {
       console.error("Error sending ride invitation:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -634,6 +634,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Ride request updated successfully" });
     } catch (error) {
       console.error("Error updating ride request:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get ride invitations for user
+  app.get("/api/ride-invitations", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const invitations = await storage.getRideInvitations(userId);
+      res.json({ invitations });
+    } catch (error) {
+      console.error("Error getting ride invitations:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Respond to ride invitation
+  app.put("/api/ride-invitations/:invitationId/respond", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const invitationId = parseInt(req.params.invitationId);
+      const { status } = req.body; // 'accepted' or 'declined'
+
+      // Verify the invitation exists and belongs to the user
+      const invitations = await storage.getRideInvitations(userId);
+      const invitation = invitations.find(inv => inv.id === invitationId);
+      
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+
+      await storage.respondToRideInvitation(invitationId, status);
+
+      // If accepted, add user to the ride (create join request)
+      if (status === 'accepted') {
+        await storage.createRideJoinRequest({
+          rideId: invitation.rideId,
+          requesterId: userId,
+          message: "Accepted ride invitation",
+        });
+
+        // Update ride available seats
+        const ride = await storage.getRide(invitation.rideId);
+        if (ride && ride.availableSeats > 0) {
+          await storage.updateRideSeats(invitation.rideId, ride.availableSeats - 1);
+        }
+      }
+
+      res.json({ message: `Invitation ${status} successfully` });
+    } catch (error) {
+      console.error("Error responding to ride invitation:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

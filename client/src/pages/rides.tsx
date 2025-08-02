@@ -118,14 +118,33 @@ export function Rides() {
     queryKey: ['/api/ride-join-status'],
   });
 
+  const { data: rideInvitationsData } = useQuery({
+    queryKey: ['/api/ride-invitations'],
+  });
+
   const joinRequests = (joinRequestsData as any)?.requests || [];
   const userJoinRequests = (userJoinStatusData as any)?.joinRequests || [];
+  const rideInvitations = (rideInvitationsData as any)?.invitations || [];
 
   const respondToJoinRequestMutation = useMutation({
     mutationFn: ({ requestId, status }: { requestId: number; status: string }) => 
       apiRequest('POST', `/api/rides/join-requests/${requestId}/respond`, { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/rides/join-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ride-join-status'] });
+      toast({
+        title: "Success",
+        description: "Response sent successfully!",
+      });
+    },
+  });
+
+  const respondToRideInvitationMutation = useMutation({
+    mutationFn: ({ invitationId, status }: { invitationId: number; status: string }) => 
+      apiRequest('PUT', `/api/ride-invitations/${invitationId}/respond`, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/ride-invitations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
       queryClient.invalidateQueries({ queryKey: ['/api/ride-join-status'] });
       toast({
@@ -169,10 +188,11 @@ export function Rides() {
       </div>
 
       <Tabs defaultValue="available" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="available">{t('availableRides')}</TabsTrigger>
           <TabsTrigger value="requests">{t('requestedRides')}</TabsTrigger>
           <TabsTrigger value="join-requests">{t('joinRequests')}</TabsTrigger>
+          <TabsTrigger value="invitations">Ride Invitations</TabsTrigger>
           <TabsTrigger value="my-requests">{t('myRequests')}</TabsTrigger>
         </TabsList>
         
@@ -218,6 +238,7 @@ export function Rides() {
                       
                       queryClient.invalidateQueries({ queryKey: ['/api/ride-requests'] });
                       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+                      queryClient.invalidateQueries({ queryKey: ['/api/ride-invitations'] });
                       
                       toast({
                         title: "Success",
@@ -245,6 +266,19 @@ export function Rides() {
                 request={request} 
                 onRespond={(status) => respondToJoinRequestMutation.mutate({ requestId: request.id, status })}
                 isResponding={respondToJoinRequestMutation.isPending}
+              />
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="invitations" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {rideInvitations.map((invitation: any) => (
+              <RideInvitationCard 
+                key={invitation.id} 
+                invitation={invitation} 
+                onRespond={(status) => respondToRideInvitationMutation.mutate({ invitationId: invitation.id, status })}
+                isResponding={respondToRideInvitationMutation.isPending}
               />
             ))}
           </div>
@@ -1177,6 +1211,92 @@ function UserJoinRequestCard({ request }: { request: any }) {
         {request.respondedAt && (
           <div className="text-xs text-gray-500 dark:text-gray-500">
             Response received: {new Date(request.respondedAt).toLocaleDateString()}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function RideInvitationCard({ invitation, onRespond, isResponding }: { 
+  invitation: any; 
+  onRespond: (status: string) => void; 
+  isResponding: boolean 
+}) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'accepted': return 'text-green-600 bg-green-100';
+      case 'declined': return 'text-red-600 bg-red-100';
+      default: return 'text-yellow-600 bg-yellow-100';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'accepted': return 'Accepted';
+      case 'declined': return 'Declined';
+      default: return 'Pending';
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Car className="h-5 w-5 mr-2" />
+              <span>Ride Offer</span>
+            </div>
+            <span className={`text-xs px-2 py-1 rounded ${getStatusColor(invitation.status)}`}>
+              {getStatusText(invitation.status)}
+            </span>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          <p><strong>Driver:</strong> {invitation.ride.driver.username}</p>
+          <p><strong>Route:</strong> {invitation.ride.departure} → {invitation.ride.destination}</p>
+          <p><strong>Time:</strong> {invitation.ride.departureTime}</p>
+          <p><strong>Trip Type:</strong> {invitation.ride.tripType === 'arrival' ? 'Arrival' : 'Departure'}</p>
+          <p><strong>Day:</strong> {invitation.ride.eventDay === 'day1' ? 'Aug 28' : invitation.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}</p>
+          <p><strong>Available Seats:</strong> {invitation.ride.availableSeats}/{invitation.ride.totalSeats}</p>
+        </div>
+        
+        {invitation.ride.notes && (
+          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Driver's notes:</strong> {invitation.ride.notes}
+            </p>
+          </div>
+        )}
+        
+        {invitation.status === 'pending' && (
+          <div className="flex space-x-2">
+            <Button 
+              onClick={() => onRespond('accepted')} 
+              disabled={isResponding}
+              className="w-full bg-green-600 hover:bg-green-700"
+              size="sm"
+            >
+              Accept Offer
+            </Button>
+            <Button 
+              onClick={() => onRespond('declined')} 
+              disabled={isResponding}
+              variant="outline"
+              className="w-full"
+              size="sm"
+            >
+              Decline
+            </Button>
+          </div>
+        )}
+        
+        {invitation.respondedAt && (
+          <div className="text-xs text-gray-500 dark:text-gray-500">
+            Response sent: {new Date(invitation.respondedAt).toLocaleDateString()}
           </div>
         )}
       </CardContent>
