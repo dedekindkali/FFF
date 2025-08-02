@@ -296,7 +296,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               </div>
               <div className="ml-4">
                 <p className="text-sm subtitle-font text-gray-600 dark:text-gray-400">{t('dietary')}</p>
-                <p className="text-sm body-text text-gray-900 dark:text-white line-clamp-2">
+                <p className="text-lg body-text text-gray-900 dark:text-white">
                   {getDietaryStatus()}
                 </p>
               </div>
