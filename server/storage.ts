@@ -411,10 +411,38 @@ export class DatabaseStorage implements IStorage {
   // Admin methods
   async deleteUser(userId: number): Promise<void> {
     // Delete related records first due to foreign key constraints
-    await db.delete(attendanceRecords).where(eq(attendanceRecords.userId, userId));
-    await db.delete(rideRequests).where(eq(rideRequests.requesterId, userId));
+    // Order matters - delete child records before parent records
+    
+    // First, get the user's ride requests to delete related notifications
+    const userRideRequests = await db
+      .select({ id: rideRequests.id })
+      .from(rideRequests)
+      .where(eq(rideRequests.requesterId, userId));
+    
+    // Delete notifications that reference the user's ride requests
+    for (const request of userRideRequests) {
+      await db.delete(rideNotifications).where(eq(rideNotifications.requestId, request.id));
+    }
+    
+    // Delete notifications related to the user
+    await db.delete(rideNotifications).where(eq(rideNotifications.userId, userId));
+    await db.delete(rideNotifications).where(eq(rideNotifications.requesterId, userId));
+    
+    // Delete ride invitations (both as inviter and invitee)
+    await db.delete(rideInvitations).where(eq(rideInvitations.inviterId, userId));
+    await db.delete(rideInvitations).where(eq(rideInvitations.inviteeId, userId));
+    
+    // Delete join requests
     await db.delete(rideJoinRequests).where(eq(rideJoinRequests.requesterId, userId));
+    
+    // Delete ride requests
+    await db.delete(rideRequests).where(eq(rideRequests.requesterId, userId));
+    
+    // Delete rides where user is the driver
     await db.delete(rides).where(eq(rides.driverId, userId));
+    
+    // Delete attendance records
+    await db.delete(attendanceRecords).where(eq(attendanceRecords.userId, userId));
     
     // Finally delete the user
     await db.delete(users).where(eq(users.id, userId));
