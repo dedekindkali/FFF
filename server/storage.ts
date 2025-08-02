@@ -426,7 +426,6 @@ export class DatabaseStorage implements IStorage {
     
     // Delete notifications related to the user
     await db.delete(rideNotifications).where(eq(rideNotifications.userId, userId));
-    await db.delete(rideNotifications).where(eq(rideNotifications.requesterId, userId));
     
     // Delete ride invitations (both as inviter and invitee)
     await db.delete(rideInvitations).where(eq(rideInvitations.inviterId, userId));

@@ -23,6 +23,10 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
     email: "",
     phone: ""
   });
+  const [adminData, setAdminData] = useState({
+    username: "",
+    password: ""
+  });
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -77,6 +81,44 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
     },
   });
 
+  const adminLoginMutation = useMutation({
+    mutationFn: async (adminData: { username: string; password: string }) => {
+      // First login as user
+      await apiRequest('POST', '/api/auth/login', { username: adminData.username });
+      // Then authenticate as admin
+      await apiRequest('POST', '/api/admin/auth', { password: adminData.password });
+      return true;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Admin access granted",
+        description: "Redirecting to admin panel...",
+      });
+      onLogin();
+    },
+    onError: (error: any) => {
+      if (error?.message?.includes('not found')) {
+        toast({
+          title: "User not found",
+          description: "Please check your username and try again.",
+          variant: "destructive",
+        });
+      } else if (error?.message?.includes('Invalid admin password')) {
+        toast({
+          title: "Invalid admin password",
+          description: "Please check your admin password and try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Admin login failed",
+          description: "Please try again.",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim()) {
@@ -96,6 +138,16 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
     }
   };
 
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (adminData.username.trim() && adminData.password.trim()) {
+      adminLoginMutation.mutate({
+        username: adminData.username.trim(),
+        password: adminData.password.trim()
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-md w-full space-y-8">
@@ -109,9 +161,10 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
         <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-8">
             <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="signin">{t('signIn')}</TabsTrigger>
                 <TabsTrigger value="signup">{t('signUp')}</TabsTrigger>
+                <TabsTrigger value="admin">Admin</TabsTrigger>
               </TabsList>
               
               <TabsContent value="signin" className="space-y-4">
@@ -202,6 +255,52 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
                     {signUpMutation.isPending ? t('creatingAccount') : t('createAccount')}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="admin" className="space-y-4">
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Admin Login</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Access the admin panel</p>
+                </div>
+                
+                <form onSubmit={handleAdminLogin} className="space-y-4">
+                  <div>
+                    <Label htmlFor="admin-username">Username</Label>
+                    <Input
+                      id="admin-username"
+                      name="admin-username"
+                      type="text"
+                      required
+                      className="mt-1"
+                      placeholder="Enter your username"
+                      value={adminData.username}
+                      onChange={(e) => setAdminData(prev => ({ ...prev, username: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="admin-password">Admin Password</Label>
+                    <Input
+                      id="admin-password"
+                      name="admin-password"
+                      type="password"
+                      required
+                      className="mt-1"
+                      placeholder="Enter admin password"
+                      value={adminData.password}
+                      onChange={(e) => setAdminData(prev => ({ ...prev, password: e.target.value }))}
+                    />
+                  </div>
+                  
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={adminLoginMutation.isPending}
+                  >
+                    <LogIn className="h-4 w-4 mr-2" />
+                    {adminLoginMutation.isPending ? "Logging in..." : "Admin Login"}
                   </Button>
                 </form>
               </TabsContent>
