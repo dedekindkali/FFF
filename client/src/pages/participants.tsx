@@ -7,7 +7,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, Car, MapPin, Users2 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 
-export function Participants() {
+interface ParticipantsProps {
+  onNavigate: (view: string) => void;
+}
+
+export function Participants({ onNavigate }: ParticipantsProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [dayFilter, setDayFilter] = useState("");
   const [rideFilter, setRideFilter] = useState("");
@@ -225,7 +229,10 @@ export function Participants() {
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      <h3 
+                        className="text-lg font-semibold text-primary hover:text-primary/80 cursor-pointer transition-colors"
+                        onClick={() => onNavigate(`profile/${participant.id}`)}
+                      >
                         {participant.username}
                       </h3>
                       {participant.isAdmin && (

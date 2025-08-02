@@ -174,6 +174,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User profile routes
+  app.get("/api/users/:userId", async (req, res) => {
+    const currentUserId = (req as any).session?.userId;
+    if (!currentUserId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const userId = parseInt(req.params.userId);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ user });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/users/:userId/attendance", async (req, res) => {
+    const currentUserId = (req as any).session?.userId;
+    if (!currentUserId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const userId = parseInt(req.params.userId);
+      const attendance = await storage.getAttendanceByUserId(userId);
+      
+      res.json({ attendance });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Admin routes
   app.get("/api/admin/stats", async (req, res) => {
     const userId = (req as any).session?.userId;

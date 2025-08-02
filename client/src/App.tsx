@@ -12,6 +12,7 @@ import { Attendance } from "@/pages/attendance";
 import { Participants } from "@/pages/participants";
 import { Rides } from "@/pages/rides";
 import { Admin } from "@/pages/admin";
+import { Profile } from "@/pages/profile";
 import { useQuery } from "@tanstack/react-query";
 
 function AppContent() {
@@ -62,13 +63,18 @@ function AppContent() {
   }
 
   const renderCurrentView = () => {
+    if (currentView.startsWith('profile/')) {
+      const userId = currentView.split('/')[1];
+      return <Profile onNavigate={setCurrentView} userId={userId} />;
+    }
+    
     switch (currentView) {
       case 'dashboard':
         return <Dashboard onNavigate={setCurrentView} />;
       case 'attendance':
         return <Attendance onNavigate={setCurrentView} />;
       case 'participants':
-        return <Participants />;
+        return <Participants onNavigate={setCurrentView} />;
       case 'rides':
         return <Rides />;
       case 'admin':

@@ -47,60 +47,65 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const getAttendancePeriods = () => {
     if (!attendance) return [];
     
+    // Create a chronological list of all events the user is attending
+    const events = [];
+    
+    if (attendance.day1Breakfast) events.push({ day: 1, event: 'breakfast', label: 'breakfast Aug 28' });
+    if (attendance.day1Lunch) events.push({ day: 1, event: 'lunch', label: 'lunch Aug 28' });
+    if (attendance.day1Dinner) events.push({ day: 1, event: 'dinner', label: 'dinner Aug 28' });
+    if (attendance.day1Night) events.push({ day: 1, event: 'overnight', label: 'overnight Aug 28-29' });
+    
+    if (attendance.day2Breakfast) events.push({ day: 2, event: 'breakfast', label: 'breakfast Aug 29' });
+    if (attendance.day2Lunch) events.push({ day: 2, event: 'lunch', label: 'lunch Aug 29' });
+    if (attendance.day2Dinner) events.push({ day: 2, event: 'dinner', label: 'dinner Aug 29' });
+    if (attendance.day2Night) events.push({ day: 2, event: 'overnight', label: 'overnight Aug 29-30' });
+    
+    if (attendance.day3Breakfast) events.push({ day: 3, event: 'breakfast', label: 'breakfast Aug 30' });
+    if (attendance.day3Lunch) events.push({ day: 3, event: 'lunch', label: 'lunch Aug 30' });
+    if (attendance.day3Dinner) events.push({ day: 3, event: 'dinner', label: 'dinner Aug 30' });
+    
+    if (events.length === 0) return [];
+    
+    // Group continuous periods
     const periods = [];
+    let currentPeriod = null;
     
-    // Day 1 periods
-    const day1Events = [];
-    if (attendance.day1Breakfast) day1Events.push('breakfast');
-    if (attendance.day1Lunch) day1Events.push('lunch');
-    if (attendance.day1Dinner) day1Events.push('dinner');
-    if (attendance.day1Night) day1Events.push('overnight');
-    
-    if (day1Events.length > 0) {
-      const firstEvent = day1Events[0];
-      const lastEvent = day1Events[day1Events.length - 1];
-      if (firstEvent === lastEvent) {
-        periods.push(`${firstEvent} of Aug 28`);
+    for (let i = 0; i < events.length; i++) {
+      if (!currentPeriod) {
+        currentPeriod = { start: events[i], end: events[i] };
       } else {
-        periods.push(`from ${firstEvent} of Aug 28 to ${lastEvent} of Aug 28`);
+        // Check if this event is continuous with the previous one
+        const prevEvent = events[i - 1];
+        const currentEvent = events[i];
+        
+        const isContinuous = (
+          (prevEvent.day === currentEvent.day) || 
+          (prevEvent.day === currentEvent.day - 1 && prevEvent.event === 'overnight') ||
+          (prevEvent.day === currentEvent.day - 1 && currentEvent.event === 'breakfast')
+        );
+        
+        if (isContinuous) {
+          currentPeriod.end = currentEvent;
+        } else {
+          // End current period and start new one
+          periods.push(currentPeriod);
+          currentPeriod = { start: currentEvent, end: currentEvent };
+        }
       }
     }
     
-    // Day 2 periods
-    const day2Events = [];
-    if (attendance.day2Breakfast) day2Events.push('breakfast');
-    if (attendance.day2Lunch) day2Events.push('lunch');
-    if (attendance.day2Dinner) day2Events.push('dinner');
-    if (attendance.day2Night) day2Events.push('overnight');
-    
-    if (day2Events.length > 0) {
-      const firstEvent = day2Events[0];
-      const lastEvent = day2Events[day2Events.length - 1];
-      if (firstEvent === lastEvent) {
-        periods.push(`${firstEvent} of Aug 29`);
-      } else {
-        periods.push(`from ${firstEvent} of Aug 29 to ${lastEvent} of Aug 29`);
-      }
+    if (currentPeriod) {
+      periods.push(currentPeriod);
     }
     
-    // Day 3 periods
-    const day3Events = [];
-    if (attendance.day3Breakfast) day3Events.push('breakfast');
-    if (attendance.day3Lunch) day3Events.push('lunch');
-    if (attendance.day3Dinner) day3Events.push('dinner');
-    if (attendance.day3Night) day3Events.push('overnight');
-    
-    if (day3Events.length > 0) {
-      const firstEvent = day3Events[0];
-      const lastEvent = day3Events[day3Events.length - 1];
-      if (firstEvent === lastEvent) {
-        periods.push(`${firstEvent} of Aug 30`);
+    // Format periods as strings
+    return periods.map(period => {
+      if (period.start.label === period.end.label) {
+        return period.start.label;
       } else {
-        periods.push(`from ${firstEvent} of Aug 30 to ${lastEvent} of Aug 30`);
+        return `from ${period.start.label} to ${period.end.label}`;
       }
-    }
-    
-    return periods;
+    });
   };
 
   const getRideCoordinationInfo = () => {
@@ -209,14 +214,14 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('welcomeBack')} FroForForno</h2>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{currentUser?.username || t('welcomeBack')}</h2>
         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{t('eventDates')} • Gestisci la tua partecipazione e preferenze</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
 
-        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
             <div className="flex items-center">
               <div className="relative p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
@@ -237,7 +242,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
             <div className="flex items-center">
               <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
@@ -256,7 +261,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
       {/* Detailed Attendance Information */}
       {attendancePeriods.length > 0 && (
-        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
+        <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
           <CardContent className="p-6">
             <div className="flex items-center mb-4">
               <CalendarPlus className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
@@ -276,7 +281,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
       {/* Detailed Ride Information */}
       {rideInfo && (
-        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
+        <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
           <CardContent className="p-6">
             <div className="flex items-center mb-4">
               <rideInfo.icon className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
