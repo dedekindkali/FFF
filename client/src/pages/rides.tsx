@@ -740,7 +740,7 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
                           }}
                           className="ml-2"
                         >
-                          {t('selectRide')}
+                          Select Ride
                         </Button>
                       </div>
                     </div>
