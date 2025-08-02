@@ -341,28 +341,39 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRideInvitations(userId: number): Promise<Array<RideInvitation & { ride: Ride & { driver: User }; inviter: User }>> {
-    const result = await db
+    // Get invitations with ride data and driver info
+    const invitationsWithRides = await db
       .select({
         invitation: rideInvitations,
         ride: rides,
         driver: users,
-        inviter: users,
       })
       .from(rideInvitations)
       .innerJoin(rides, eq(rideInvitations.rideId, rides.id))
       .innerJoin(users, eq(rides.driverId, users.id))
-      .innerJoin(users, eq(rideInvitations.inviterId, users.id))
       .where(eq(rideInvitations.inviteeId, userId))
       .orderBy(desc(rideInvitations.createdAt));
 
-    return result.map(row => ({
-      ...row.invitation,
-      ride: {
-        ...row.ride,
-        driver: row.driver,
-      },
-      inviter: row.inviter,
-    }));
+    // Get inviter information separately
+    const result = await Promise.all(
+      invitationsWithRides.map(async (row) => {
+        const [inviter] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, row.invitation.inviterId));
+
+        return {
+          ...row.invitation,
+          ride: {
+            ...row.ride,
+            driver: row.driver,
+          },
+          inviter: inviter || row.driver, // Fallback to driver if inviter not found
+        };
+      })
+    );
+
+    return result;
   }
 
   async respondToRideInvitation(invitationId: number, status: string): Promise<void> {
