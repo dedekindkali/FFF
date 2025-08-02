@@ -797,11 +797,19 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
               // Step 1: Create the new ride
               console.log('Creating ride with data:', rideData);
               const response = await apiRequest('POST', '/api/rides', rideData);
+              console.log('Full API response:', response);
               createdRide = (response as any).ride;
               console.log('Ride created successfully:', createdRide);
               
               if (!createdRide) {
-                throw new Error('Ride creation failed - no ride returned from API');
+                // Try to get ride from different response structure
+                if (response && (response as any).id) {
+                  createdRide = response;
+                  console.log('Using direct response as ride:', createdRide);
+                } else {
+                  console.error('No ride found in response structure');
+                  throw new Error('Ride creation failed - no ride returned from API');
+                }
               }
               
               // Step 2: Send invitation to the requester
