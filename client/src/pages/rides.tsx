@@ -199,7 +199,8 @@ export function Rides() {
             {requests.map((request: RideRequest & { requester: any }) => (
               <RequestCard 
                 key={request.id} 
-                request={request} 
+                request={request}
+                currentUser={currentUser}
                 onOfferRide={(requestId) => {
                   // Create a ride offer based on the request
                   const rideData = {
@@ -465,9 +466,14 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModify
             {currentUser && ride.driver.id === currentUser.id && onModifyRide && (
               <Button
                 variant="destructive"
-                onClick={() => {
+                onClick={async () => {
                   if (window.confirm(t('deleteRideConfirm'))) {
-                    deleteRideMutation.mutate(ride.id);
+                    try {
+                      await apiRequest('DELETE', `/api/rides/${ride.id}`);
+                      queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
+                    } catch (error) {
+                      console.error('Error deleting ride:', error);
+                    }
                   }
                 }}
                 className="flex-1"
@@ -533,8 +539,9 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModify
   );
 }
 
-function RequestCard({ request, onOfferRide }: { 
-  request: RideRequest & { requester: any }, 
+function RequestCard({ request, currentUser, onOfferRide }: { 
+  request: RideRequest & { requester: any },
+  currentUser: any,
   onOfferRide?: (requestId: number) => void 
 }) {
   const { t } = useLanguage();
@@ -607,9 +614,14 @@ function RequestCard({ request, onOfferRide }: {
               {currentUser && request.requesterId === currentUser.id && (
                 <Button
                   variant="destructive"
-                  onClick={() => {
+                  onClick={async () => {
                     if (window.confirm(t('deleteRequestConfirm'))) {
-                      deleteRequestMutation.mutate(request.id);
+                      try {
+                        await apiRequest('DELETE', `/api/ride-requests/${request.id}`);
+                        queryClient.invalidateQueries({ queryKey: ['/api/ride-requests'] });
+                      } catch (error) {
+                        console.error('Error deleting request:', error);
+                      }
                     }
                   }}
                   size="sm"
