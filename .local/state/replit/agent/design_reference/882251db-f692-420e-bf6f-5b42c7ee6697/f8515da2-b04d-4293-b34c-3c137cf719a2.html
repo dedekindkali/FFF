@@ -1,0 +1,890 @@
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Management System - 3-Day Conference</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8'
+                        }
+                    }
+                }
+            },
+            darkMode: 'class'
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="font-inter bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    
+    <!-- @COMPONENT: ThemeToggle -->
+    <div class="fixed top-4 right-4 z-50">
+        <button id="themeToggle" class="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <i class="fas fa-sun text-yellow-500 dark:hidden"></i>
+            <i class="fas fa-moon text-blue-400 hidden dark:block"></i>
+        </button>
+    </div>
+    <!-- @END_COMPONENT: ThemeToggle -->
+
+    <!-- @COMPONENT: LoginScreen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full space-y-8">
+            <div class="text-center">
+                <!-- FFF Logo Integration -->
+                <div class="mx-auto h-16 w-16 bg-black rounded-full flex items-center justify-center mb-4">
+                    <div class="h-8 w-8 border-2 border-white border-b-transparent rounded-full"></div>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Event Management</h2>
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">August 28-30, 2024 Conference</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                <form class="space-y-6" data-event="submit:handleLogin">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Username
+                        </label>
+                        <input 
+                            id="username" 
+                            name="username" 
+                            type="text" 
+                            required 
+                            class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                            placeholder="Enter your username"
+                            data-bind="user.username"
+                        >
+                    </div>
+                    <div>
+                        <button 
+                            type="submit" 
+                            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                            data-implementation="Should validate username and create session"
+                        >
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            Sign In
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <button 
+                            type="button" 
+                            class="text-primary-600 hover:text-primary-500 text-sm font-medium"
+                            data-event="click:showNewUserForm"
+                        >
+                            Create New Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: LoginScreen -->
+
+    <!-- @COMPONENT: MainApp -->
+    <div id="mainApp" class="hidden">
+        
+        <!-- @COMPONENT: Navigation -->
+        <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <div class="h-8 w-8 bg-black rounded-full flex items-center justify-center mr-3">
+                            <div class="h-4 w-4 border border-white border-b-transparent rounded-full"></div>
+                        </div>
+                        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">Event Manager</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <nav class="hidden md:flex space-x-8">
+                            <button class="nav-btn active text-primary-600 dark:text-primary-400 border-b-2 border-primary-600" data-view="dashboard">
+                                <i class="fas fa-home mr-1"></i> Dashboard
+                            </button>
+                            <button class="nav-btn text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" data-view="attendance">
+                                <i class="fas fa-calendar-check mr-1"></i> Attendance
+                            </button>
+                            <button class="nav-btn text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" data-view="participants">
+                                <i class="fas fa-users mr-1"></i> Participants
+                            </button>
+                            <button class="nav-btn text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 admin-only" data-view="admin">
+                                <i class="fas fa-cog mr-1"></i> Admin
+                            </button>
+                        </nav>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-600 dark:text-gray-400" data-bind="user.displayName">John Doe</span>
+                            <button class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" data-event="click:handleLogout">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <!-- @END_COMPONENT: Navigation -->
+
+        <!-- @COMPONENT: Dashboard -->
+        <div id="dashboardView" class="view-content max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome to the Conference</h2>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">August 28-30, 2024 • Manage your attendance and preferences</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Status Cards -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                            <i class="fas fa-calendar-check text-green-600 dark:text-green-400"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Days Attending</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white" data-bind="user.attendingDays">2/3</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                            <i class="fas fa-car text-blue-600 dark:text-blue-400"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Ride Status</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white" data-bind="user.rideStatus">Offering</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                            <i class="fas fa-utensils text-purple-600 dark:text-purple-400"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Dietary Info</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white" data-bind="user.dietaryStatus">Set</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <button class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-event="click:navigateToAttendance">
+                        <i class="fas fa-calendar-plus text-primary-600 dark:text-primary-400 text-xl mb-2"></i>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">Update Attendance</p>
+                    </button>
+                    <button class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-event="click:navigateToRides">
+                        <i class="fas fa-car-side text-primary-600 dark:text-primary-400 text-xl mb-2"></i>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">Manage Rides</p>
+                    </button>
+                    <button class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-event="click:navigateToDietary">
+                        <i class="fas fa-leaf text-primary-600 dark:text-primary-400 text-xl mb-2"></i>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">Dietary Preferences</p>
+                    </button>
+                    <button class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-event="click:navigateToParticipants">
+                        <i class="fas fa-users text-primary-600 dark:text-primary-400 text-xl mb-2"></i>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">View Participants</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Dashboard -->
+
+        <!-- @COMPONENT: AttendanceView -->
+        <div id="attendanceView" class="view-content hidden max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Attendance Confirmation</h2>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Select which meals and activities you'll attend</p>
+            </div>
+
+            <form class="space-y-8" data-event="submit:handleAttendanceUpdate">
+                <!-- Day 1: August 28 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <i class="fas fa-calendar-day text-primary-600 dark:text-primary-400 mr-2"></i>
+                        Wednesday, August 28
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="attendance.day1.breakfast">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Breakfast</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">8:00 AM</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="attendance.day1.lunch">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Lunch</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">12:00 PM</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="attendance.day1.dinner">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Dinner</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">7:00 PM</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="attendance.day1.night">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Night Activity</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">9:00 PM</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Day 2: August 29 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <i class="fas fa-calendar-day text-primary-600 dark:text-primary-400 mr-2"></i>
+                        Thursday, August 29
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="attendance.day2.breakfast">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Breakfast</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">8:00 AM</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="attendance.day2.lunch">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Lunch</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">12:00 PM</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="attendance.day2.dinner">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Dinner</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">7:00 PM</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="attendance.day2.night">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Night Activity</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">9:00 PM</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Day 3: August 30 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <i class="fas fa-calendar-day text-primary-600 dark:text-primary-400 mr-2"></i>
+                        Friday, August 30
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="attendance.day3.breakfast">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Breakfast</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">8:00 AM</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="attendance.day3.lunch">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Lunch</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">12:00 PM</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="attendance.day3.dinner">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Dinner</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">7:00 PM</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="attendance.day3.night">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Night Activity</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">9:00 PM</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Transportation & Dietary Preferences -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Transportation -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                            <i class="fas fa-car text-primary-600 dark:text-primary-400 mr-2"></i>
+                            Transportation
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Ride Status
+                                </label>
+                                <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500" data-bind="transportation.status">
+                                    <option value="">Select option</option>
+                                    <option value="offering">Offering rides</option>
+                                    <option value="needed">Need a ride</option>
+                                    <option value="own">Own transportation</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Details
+                                </label>
+                                <textarea 
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500" 
+                                    rows="3"
+                                    placeholder="Location, departure time, number of seats, etc."
+                                    data-bind="transportation.details"
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dietary Preferences -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                            <i class="fas fa-utensils text-primary-600 dark:text-primary-400 mr-2"></i>
+                            Dietary Preferences
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="dietary.vegetarian">
+                                    <span class="text-sm text-gray-900 dark:text-white">Vegetarian</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="dietary.vegan">
+                                    <span class="text-sm text-gray-900 dark:text-white">Vegan</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="dietary.glutenFree">
+                                    <span class="text-sm text-gray-900 dark:text-white">Gluten-free</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="h-4 w-4 text-primary-600 rounded border-gray-300 dark:border-gray-600" data-bind="dietary.dairyFree">
+                                    <span class="text-sm text-gray-900 dark:text-white">Dairy-free</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Food Allergies / Other Restrictions
+                                </label>
+                                <textarea 
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500" 
+                                    rows="2"
+                                    placeholder="Please list any food allergies or additional dietary restrictions"
+                                    data-bind="dietary.allergies"
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Notes -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <i class="fas fa-sticky-note text-primary-600 dark:text-primary-400 mr-2"></i>
+                        Additional Notes
+                    </h3>
+                    <textarea 
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500" 
+                        rows="3"
+                        placeholder="Any additional information or special requests"
+                        data-bind="user.notes"
+                    ></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-end">
+                    <button 
+                        type="button" 
+                        class="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        data-event="click:resetForm"
+                    >
+                        Reset Form
+                    </button>
+                    <button 
+                        type="submit" 
+                        class="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                        data-implementation="Should validate and save attendance data"
+                    >
+                        Save Preferences
+                    </button>
+                </div>
+            </form>
+        </div>
+        <!-- @END_COMPONENT: AttendanceView -->
+
+        <!-- @COMPONENT: ParticipantsView -->
+        <div id="participantsView" class="view-content hidden max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Event Participants</h2>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">View all confirmed participants and their preferences</p>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="mb-6 flex flex-col sm:flex-row gap-4">
+                <div class="flex-1">
+                    <input 
+                        type="text" 
+                        placeholder="Search participants..." 
+                        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                        data-event="input:handleSearch"
+                    >
+                </div>
+                <select class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500" data-event="change:handleFilter">
+                    <option value="">All Days</option>
+                    <option value="day1">August 28</option>
+                    <option value="day2">August 29</option>
+                    <option value="day3">August 30</option>
+                </select>
+                <select class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500" data-event="change:handleRideFilter">
+                    <option value="">All Ride Status</option>
+                    <option value="offering">Offering Rides</option>
+                    <option value="needed">Need Rides</option>
+                    <option value="own">Own Transport</option>
+                </select>
+            </div>
+
+            <!-- Participants Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- @MAP: participants.map(participant => ( -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6" data-mock="true">
+                    <div class="flex items-center mb-4">
+                        <div class="h-10 w-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+                            <span class="text-primary-600 dark:text-primary-400 font-medium" data-bind="participant.initials">JD</span>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white" data-bind="participant.name">John Doe</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400" data-bind="participant.email">john@example.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attendance</h4>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="px-2 py-1 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">Aug 28</span>
+                                <span class="px-2 py-1 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">Aug 29</span>
+                                <span class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-full">Aug 30</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Transportation</h4>
+                            <span class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">Offering Rides</span>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dietary</h4>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full">Vegetarian</span>
+                                <span class="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full">Gluten-free</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6" data-mock="true">
+                    <div class="flex items-center mb-4">
+                        <div class="h-10 w-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+                            <span class="text-primary-600 dark:text-primary-400 font-medium">AS</span>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Alice Smith</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">alice@example.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attendance</h4>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="px-2 py-1 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">Aug 28</span>
+                                <span class="px-2 py-1 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">Aug 29</span>
+                                <span class="px-2 py-1 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">Aug 30</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Transportation</h4>
+                            <span class="px-2 py-1 text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full">Need Ride</span>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dietary</h4>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full">Vegan</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6" data-mock="true">
+                    <div class="flex items-center mb-4">
+                        <div class="h-10 w-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+                            <span class="text-primary-600 dark:text-primary-400 font-medium">MB</span>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Mike Brown</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">mike@example.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attendance</h4>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-full">Aug 28</span>
+                                <span class="px-2 py-1 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">Aug 29</span>
+                                <span class="px-2 py-1 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">Aug 30</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Transportation</h4>
+                            <span class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-full">Own Transport</span>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dietary</h4>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-full">No restrictions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+
+            <!-- Load More Button -->
+            <div class="mt-8 text-center">
+                <button class="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-event="click:loadMoreParticipants">
+                    Load More Participants
+                </button>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: ParticipantsView -->
+
+        <!-- @COMPONENT: AdminView -->
+        <div id="adminView" class="view-content hidden max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h2>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Event overview and management tools</p>
+            </div>
+
+            <!-- Overview Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                            <i class="fas fa-users text-blue-600 dark:text-blue-400"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Participants</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white" data-bind="stats.totalParticipants">47</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                            <i class="fas fa-calendar-check text-green-600 dark:text-green-400"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Attendance</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white" data-bind="stats.avgAttendance">2.3 days</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                            <i class="fas fa-car text-purple-600 dark:text-purple-400"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Ride Offers</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white" data-bind="stats.rideOffers">12</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                            <i class="fas fa-utensils text-yellow-600 dark:text-yellow-400"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Special Diets</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white" data-bind="stats.specialDiets">18</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Breakdown -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">August 28 Attendance</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Breakfast</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="day1.breakfast">32</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Lunch</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="day1.lunch">38</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Dinner</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="day1.dinner">35</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Night Activity</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="day1.night">28</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">August 29 Attendance</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Breakfast</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="day2.breakfast">41</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Lunch</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="day2.lunch">43</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Dinner</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="day2.dinner">39</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Night Activity</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="day2.night">31</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">August 30 Attendance</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Breakfast</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="day3.breakfast">29</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Lunch</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="day3.lunch">31</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Dinner</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="day3.dinner">27</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Night Activity</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="day3.night">22</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export and Actions -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Export & Actions</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <button class="flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-event="click:exportAttendance">
+                        <i class="fas fa-download mr-2"></i>
+                        Export Attendance
+                    </button>
+                    <button class="flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-event="click:exportRides">
+                        <i class="fas fa-car mr-2"></i>
+                        Export Rides
+                    </button>
+                    <button class="flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-event="click:exportDietary">
+                        <i class="fas fa-utensils mr-2"></i>
+                        Export Dietary
+                    </button>
+                    <button class="flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors" data-event="click:sendReminders">
+                        <i class="fas fa-envelope mr-2"></i>
+                        Send Reminders
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: AdminView -->
+
+    </div>
+    <!-- @END_COMPONENT: MainApp -->
+
+    <!-- @COMPONENT: ToastNotifications -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- @STATE: toasts:Array = [] -->
+        <!-- Toast notifications will be dynamically added here -->
+    </div>
+    <!-- @END_COMPONENT: ToastNotifications -->
+
+    <script>
+        // Theme Toggle Functionality
+        (function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const htmlElement = document.documentElement;
+            
+            // Check for saved theme preference or default to light mode
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            htmlElement.classList.toggle('dark', currentTheme === 'dark');
+            
+            themeToggle.addEventListener('click', () => {
+                const isDark = htmlElement.classList.contains('dark');
+                htmlElement.classList.toggle('dark', !isDark);
+                localStorage.setItem('theme', !isDark ? 'dark' : 'light');
+            });
+        })();
+
+        // Navigation System
+        (function() {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const viewContents = document.querySelectorAll('.view-content');
+            
+            function showView(viewName) {
+                // Hide all views
+                viewContents.forEach(view => view.classList.add('hidden'));
+                
+                // Show selected view
+                const targetView = document.getElementById(viewName + 'View');
+                if (targetView) {
+                    targetView.classList.remove('hidden');
+                }
+                
+                // Update navigation states
+                navButtons.forEach(btn => {
+                    btn.classList.remove('active', 'text-primary-600', 'dark:text-primary-400', 'border-b-2', 'border-primary-600');
+                    btn.classList.add('text-gray-500', 'hover:text-gray-700', 'dark:text-gray-400', 'dark:hover:text-gray-200');
+                });
+                
+                const activeBtn = document.querySelector(`[data-view="${viewName}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.remove('text-gray-500', 'hover:text-gray-700', 'dark:text-gray-400', 'dark:hover:text-gray-200');
+                    activeBtn.classList.add('active', 'text-primary-600', 'dark:text-primary-400', 'border-b-2', 'border-primary-600');
+                }
+            }
+            
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const viewName = btn.getAttribute('data-view');
+                    showView(viewName);
+                });
+            });
+            
+            // Initialize with dashboard view
+            showView('dashboard');
+        })();
+
+        // Login System Simulation
+        (function() {
+            const loginScreen = document.getElementById('loginScreen');
+            const mainApp = document.getElementById('mainApp');
+            
+            // TODO: Implement actual authentication logic
+            // For demo purposes, show main app after 2 seconds
+            setTimeout(() => {
+                loginScreen.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+            }, 2000);
+        })();
+
+        // Form Interactions and Validation
+        (function() {
+            // TODO: Implement form validation, data binding, and submission logic
+            // TODO: Add real-time validation feedback
+            // TODO: Implement save/load functionality for user preferences
+            // TODO: Add API integration for data persistence
+            
+            // Demo: Add form interaction feedback
+            document.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox' || e.target.tagName === 'SELECT') {
+                    // Visual feedback for form changes
+                    e.target.closest('.bg-white, .bg-gray-800')?.classList.add('ring-2', 'ring-primary-200', 'dark:ring-primary-800');
+                    setTimeout(() => {
+                        e.target.closest('.bg-white, .bg-gray-800')?.classList.remove('ring-2', 'ring-primary-200', 'dark:ring-primary-800');
+                    }, 1000);
+                }
+            });
+        })();
+
+        // Search and Filter Functionality
+        (function() {
+            // TODO: Implement search and filtering logic for participants view
+            // TODO: Add real-time search results
+            // TODO: Implement filter combinations
+        })();
+
+        // Admin Dashboard Functionality
+        (function() {
+            // TODO: Implement admin-specific features
+            // TODO: Add real-time statistics updates
+            // TODO: Implement export functionality
+            // TODO: Add bulk operations for participant management
+        })();
+
+        // Toast Notification System
+        (function() {
+            function showToast(message, type = 'info') {
+                const toastContainer = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = `px-4 py-3 rounded-lg shadow-lg border transform transition-all duration-300 translate-x-full ${
+                    type === 'success' ? 'bg-green-50 dark:bg-green-900 border-green-200 dark:border-green-700 text-green-800 dark:text-green-200' :
+                    type === 'error' ? 'bg-red-50 dark:bg-red-900 border-red-200 dark:border-red-700 text-red-800 dark:text-red-200' :
+                    'bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-200'
+                }`;
+                toast.textContent = message;
+                
+                toastContainer.appendChild(toast);
+                
+                // Trigger animation
+                setTimeout(() => {
+                    toast.classList.remove('translate-x-full');
+                }, 10);
+                
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        toastContainer.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            }
+            
+            // Demo toast on page load
+            setTimeout(() => {
+                showToast('Welcome to the Event Management System!', 'success');
+            }, 3000);
+            
+            // Make showToast globally available
+            window.showToast = showToast;
+        })();
+    </script>
+</body>
+</html>
