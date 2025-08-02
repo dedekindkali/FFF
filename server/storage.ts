@@ -1,6 +1,6 @@
 import { users, attendanceRecords, rides, rideRequests, rideJoinRequests, type User, type InsertUser, type AttendanceRecord, type InsertAttendance, type UpdateAttendance, type Ride, type InsertRide, type RideRequest, type InsertRideRequest, type RideJoinRequest, type InsertRideJoinRequest } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -168,6 +168,8 @@ export class DatabaseStorage implements IStorage {
           .select({
             id: users.id,
             username: users.username,
+            email: users.email,
+            phone: users.phone,
             isAdmin: users.isAdmin,
             createdAt: users.createdAt,
           })
