@@ -310,14 +310,16 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
           <CardContent className="p-6">
             <div className="flex items-center mb-4">
-              <CalendarPlus className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('attendanceDetails')}</h3>
+              <div className="p-2 bg-gradient-to-br from-ff-primary/15 to-black/10 dark:from-ff-primary/25 dark:to-black/15 rounded-lg border border-ff-primary/30">
+                <CalendarPlus className="h-5 w-5 text-ff-primary" />
+              </div>
+              <h3 className="text-lg subtitle-font text-gray-900 dark:text-white ml-3">{t('attendanceDetails')}</h3>
             </div>
             <div className="space-y-2">
               {attendancePeriods.map((period, index) => (
                 <div key={index} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                  <span className="capitalize">{period}</span>
+                  <div className="w-2 h-2 bg-ff-primary rounded-full mr-3"></div>
+                  <span className="capitalize body-text">{period}</span>
                 </div>
               ))}
             </div>
@@ -330,17 +332,19 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
           <CardContent className="p-6">
             <div className="flex items-center mb-4">
-              <rideInfo.icon className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('rideDetails')}</h3>
+              <div className="p-2 bg-gradient-to-br from-black/15 to-ff-primary/15 dark:from-black/25 dark:to-ff-primary/25 rounded-lg border border-black/30 dark:border-ff-primary/30">
+                <rideInfo.icon className="h-5 w-5 text-black dark:text-ff-primary" />
+              </div>
+              <h3 className="text-lg subtitle-font text-gray-900 dark:text-white ml-3">{t('rideDetails')}</h3>
               <Badge className={`ml-auto ${rideInfo.color}`}>
-                {rideInfo.title}
+                {rideInfo.title}  
               </Badge>
             </div>
             <div className="space-y-2">
               {rideInfo.details.map((detail: string, index: number) => (
                 <div key={index} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                  <span>{detail}</span>
+                  <div className="w-2 h-2 bg-ff-primary rounded-full mr-3"></div>
+                  <span className="body-text">{detail}</span>
                 </div>
               ))}
             </div>
@@ -352,29 +356,35 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Button
           onClick={() => onNavigate('attendance')}
-          className="h-20 flex flex-col items-center justify-center space-y-2"
+          className="h-20 flex flex-col items-center justify-center space-y-2 border-ff-primary/30 hover:bg-ff-primary/10"
           variant="outline"
         >
-          <Calendar className="h-6 w-6" />
-          <span className="text-sm">{t('updateAttendance')}</span>
+          <div className="p-2 bg-gradient-to-br from-ff-primary/15 to-black/10 dark:from-ff-primary/25 dark:to-black/15 rounded-lg">
+            <Calendar className="h-5 w-5 text-ff-primary" />
+          </div>
+          <span className="text-xs body-text">{t('updateAttendance')}</span>
         </Button>
 
         <Button
           onClick={() => onNavigate('rides')}
-          className="h-20 flex flex-col items-center justify-center space-y-2"
+          className="h-20 flex flex-col items-center justify-center space-y-2 border-black/30 hover:bg-black/5 dark:border-ff-primary/30 dark:hover:bg-ff-primary/10"
           variant="outline"
         >
-          <CarFront className="h-6 w-6" />
-          <span className="text-sm">{t('manageRides')}</span>
+          <div className="p-2 bg-gradient-to-br from-black/15 to-ff-primary/15 dark:from-black/25 dark:to-ff-primary/25 rounded-lg">
+            <CarFront className="h-5 w-5 text-black dark:text-ff-primary" />
+          </div>
+          <span className="text-xs body-text">{t('manageRides')}</span>
         </Button>
 
         <Button
           onClick={() => onNavigate('participants')}
-          className="h-20 flex flex-col items-center justify-center space-y-2"
+          className="h-20 flex flex-col items-center justify-center space-y-2 border-ff-primary/30 hover:bg-ff-primary/10"
           variant="outline"
         >
-          <Users className="h-6 w-6" />
-          <span className="text-sm">{t('viewParticipants')}</span>
+          <div className="p-2 bg-gradient-to-br from-ff-primary/15 to-black/10 dark:from-ff-primary/25 dark:to-black/15 rounded-lg">
+            <Users className="h-5 w-5 text-ff-primary" />
+          </div>
+          <span className="text-xs body-text">{t('viewParticipants')}</span>
         </Button>
 
 
