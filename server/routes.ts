@@ -576,6 +576,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Invite user to specific ride
+  app.post("/api/rides/:rideId/invite", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const rideId = parseInt(req.params.rideId);
+      const { userId: invitedUserId, message } = req.body;
+
+      const ride = await storage.getRide(rideId);
+      if (!ride || ride.driverId !== userId) {
+        return res.status(403).json({ message: "Not authorized to invite to this ride" });
+      }
+
+      // Create a join request on behalf of the invited user
+      const joinRequest = await storage.createRideJoinRequest({
+        rideId,
+        requesterId: invitedUserId,
+        message: message || "You've been invited to join this ride"
+      });
+
+      // Create notification for the invited user
+      const driver = await storage.getUserById(userId);
+      await storage.createRideNotification({
+        userId: invitedUserId,
+        type: 'ride_invitation',
+        message: `${driver?.username || 'A driver'} invited you to join their ride from ${ride.departure} to ${ride.destination}`,
+      });
+
+      res.json({ message: "Invitation sent successfully", joinRequest });
+    } catch (error) {
+      console.error("Error sending ride invitation:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Update ride request status
+  app.put("/api/ride-requests/:requestId", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const requestId = parseInt(req.params.requestId);
+      const { status } = req.body;
+
+      const request = await storage.getRideRequest(requestId);
+      if (!request) {
+        return res.status(404).json({ message: "Ride request not found" });
+      }
+
+      await storage.updateRideRequestStatus(requestId, status);
+      res.json({ message: "Ride request updated successfully" });
+    } catch (error) {
+      console.error("Error updating ride request:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

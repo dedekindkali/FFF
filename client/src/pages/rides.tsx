@@ -201,21 +201,36 @@ export function Rides() {
                 key={request.id} 
                 request={request}
                 currentUser={currentUser}
-                onOfferRide={(requestId) => {
-                  // Create a ride offer based on the request
-                  const rideData = {
-                    tripType: request.tripType,
-                    eventDay: request.eventDay,
-                    departure: request.tripType === 'departure' ? 'Massello' : request.departure,
-                    destination: request.tripType === 'departure' ? request.destination : 'Massello',
-                    departureTime: request.preferredTime || '',
-                    totalSeats: 4,
-                    availableSeats: 4,
-                    notes: `Offering ride for ${request.requester.username}'s request`,
-                    driverId: 0, // Will be set by backend
-                  };
-                  
-                  offerRideMutation.mutate(rideData);
+                userRides={rides.filter((ride: any) => ride.driverId === currentUser?.id)}
+                onOfferRide={async (requestId, selectedRideId) => {
+                  // Send invitation to join specific ride
+                  if (selectedRideId) {
+                    try {
+                      await apiRequest('POST', `/api/rides/${selectedRideId}/invite`, {
+                        userId: request.requesterId,
+                        message: `You've been invited to join this ride based on your request from ${request.departure} to ${request.destination}`
+                      });
+                      
+                      // Update the request status to indicate an offer was made
+                      await apiRequest('PUT', `/api/ride-requests/${requestId}`, {
+                        status: 'offered'
+                      });
+                      
+                      queryClient.invalidateQueries({ queryKey: ['/api/ride-requests'] });
+                      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+                      
+                      toast({
+                        title: "Success",
+                        description: `Ride offer sent to ${request.requester.username}!`
+                      });
+                    } catch (error) {
+                      console.error('Error sending ride offer:', error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to send ride offer. Please try again."
+                      });
+                    }
+                  }
                 }}
               />
             ))}
@@ -539,10 +554,11 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModify
   );
 }
 
-function RequestCard({ request, currentUser, onOfferRide }: { 
+function RequestCard({ request, currentUser, userRides, onOfferRide }: { 
   request: RideRequest & { requester: any },
   currentUser: any,
-  onOfferRide?: (requestId: number) => void 
+  userRides?: any[],
+  onOfferRide?: (requestId: number, selectedRideId?: number) => void 
 }) {
   const { t } = useLanguage();
   const [showOfferDialog, setShowOfferDialog] = useState(false);
@@ -637,9 +653,9 @@ function RequestCard({ request, currentUser, onOfferRide }: {
       <Dialog open={showOfferDialog} onOpenChange={setShowOfferDialog}>
         <DialogContent className="sm:max-w-md scrollable-popup">
           <DialogHeader>
-            <DialogTitle>Offer Ride to {request.requester.username}</DialogTitle>
+            <DialogTitle>Select Ride to Offer to {request.requester.username}</DialogTitle>
             <DialogDescription>
-              Create a ride offer that matches this request
+              Choose one of your existing rides that matches this request
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -650,22 +666,52 @@ function RequestCard({ request, currentUser, onOfferRide }: {
               {request.preferredTime && <p><strong>Preferred Time:</strong> {request.preferredTime}</p>}
             </div>
             
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              Click "Offer Ride" to create a ride offer that matches this request. This will help connect you with {request.requester.username}.
-            </p>
+            {userRides && userRides.length > 0 ? (
+              <div className="space-y-3">
+                <p className="text-sm font-secondary-title">{t('selectRide')}:</p>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {userRides.map((ride: any) => (
+                    <div key={ride.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="font-secondary-title text-sm">{ride.departure} → {ride.destination}</p>
+                          <p className="text-xs text-gray-500">{ride.departureTime} • {ride.availableSeats} seats available</p>
+                        </div>
+                        <Button 
+                          size="sm"
+                          onClick={() => {
+                            onOfferRide!(request.id, ride.id);
+                            setShowOfferDialog(false);
+                          }}
+                          className="ml-2"
+                        >
+                          {t('selectRide')}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  {t('noRidesAvailable')}
+                </p>
+                <Button 
+                  onClick={() => {
+                    setShowOfferDialog(false);
+                    // Navigate to create ride
+                  }}
+                  className="w-full"
+                >
+                  {t('createNewRide')}
+                </Button>
+              </div>
+            )}
             
             <div className="flex space-x-2">
               <Button variant="outline" onClick={() => setShowOfferDialog(false)} className="w-full">
-                Cancel
-              </Button>
-              <Button 
-                onClick={() => {
-                  onOfferRide!(request.id);
-                  setShowOfferDialog(false);
-                }} 
-                className="w-full bg-blue-600 hover:bg-blue-700"
-              >
-                Offer Ride
+                {t('cancel')}
               </Button>
             </div>
           </div>

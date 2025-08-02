@@ -293,6 +293,7 @@ export const translations = {
     selectRide: 'Seleziona passaggio',
     createNewRide: 'Crea nuovo passaggio',
     sendInvitations: 'Invia inviti',
+    noRidesAvailable: 'Non hai passaggi disponibili',
     deleteRide: 'Elimina passaggio',
     deleteRequest: 'Elimina richiesta',
     confirmDelete: 'Conferma eliminazione',
