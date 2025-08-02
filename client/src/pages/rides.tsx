@@ -128,7 +128,7 @@ export function Rides() {
       <Tabs defaultValue="available" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="available">{t('availableRides')}</TabsTrigger>
-          <TabsTrigger value="requests">{t('rideRequests')}</TabsTrigger>
+          <TabsTrigger value="requests">Requested Rides</TabsTrigger>
           <TabsTrigger value="join-requests">Join Requests</TabsTrigger>
           <TabsTrigger value="my-requests">My Requests</TabsTrigger>
         </TabsList>
