@@ -42,6 +42,31 @@ export const attendanceRecords = pgTable("attendance_records", {
   updatedAt: timestamp("updated_at").default(sql`NOW()`).notNull(),
 });
 
+export const rides = pgTable("rides", {
+  id: serial("id").primaryKey(),
+  driverId: integer("driver_id").references(() => users.id).notNull(),
+  departure: varchar("departure", { length: 255 }).notNull(),
+  destination: varchar("destination", { length: 255 }).notNull(),
+  departureTime: varchar("departure_time", { length: 50 }).notNull(),
+  availableSeats: integer("available_seats").notNull(),
+  totalSeats: integer("total_seats").notNull(),
+  notes: text("notes"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").default(sql`NOW()`).notNull(),
+});
+
+export const rideRequests = pgTable("ride_requests", {
+  id: serial("id").primaryKey(),
+  requesterId: integer("requester_id").references(() => users.id).notNull(),
+  rideId: integer("ride_id").references(() => rides.id),
+  departure: varchar("departure", { length: 255 }).notNull(),
+  destination: varchar("destination", { length: 255 }).notNull(),
+  preferredTime: varchar("preferred_time", { length: 50 }),
+  notes: text("notes"),
+  status: varchar("status", { length: 20 }).default("open").notNull(), // 'open', 'matched', 'closed'
+  createdAt: timestamp("created_at").default(sql`NOW()`).notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
 });
@@ -55,8 +80,23 @@ export const updateAttendanceSchema = insertAttendanceSchema.partial().extend({
   userId: z.number(),
 });
 
+export const insertRideSchema = createInsertSchema(rides).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertRideRequestSchema = createInsertSchema(rideRequests).omit({
+  id: true,
+  createdAt: true,
+  status: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type AttendanceRecord = typeof attendanceRecords.$inferSelect;
 export type InsertAttendance = z.infer<typeof insertAttendanceSchema>;
 export type UpdateAttendance = z.infer<typeof updateAttendanceSchema>;
+export type Ride = typeof rides.$inferSelect;
+export type InsertRide = z.infer<typeof insertRideSchema>;
+export type RideRequest = typeof rideRequests.$inferSelect;
+export type InsertRideRequest = z.infer<typeof insertRideRequestSchema>;

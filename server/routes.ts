@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertAttendanceSchema, updateAttendanceSchema } from "@shared/schema";
+import { insertUserSchema, insertAttendanceSchema, updateAttendanceSchema, insertRideSchema, insertRideRequestSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -173,6 +173,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.send(csvData);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Ride routes
+  app.get("/api/rides", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const rides = await storage.getAllRides();
+      res.json({ rides });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/rides", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const rideData = insertRideSchema.parse({
+        ...req.body,
+        driverId: userId,
+      });
+      
+      const ride = await storage.createRide(rideData);
+      res.json({ ride });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid ride data" });
+    }
+  });
+
+  app.post("/api/rides/:id/join", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const rideId = parseInt(req.params.id);
+      // This would typically create a ride passenger record and update available seats
+      // For now, just update the available seats
+      const rides = await storage.getAllRides();
+      const ride = rides.find(r => r.id === rideId);
+      
+      if (!ride) {
+        return res.status(404).json({ message: "Ride not found" });
+      }
+      
+      if (ride.availableSeats <= 0) {
+        return res.status(400).json({ message: "No available seats" });
+      }
+      
+      await storage.updateRideSeats(rideId, ride.availableSeats - 1);
+      res.json({ message: "Successfully joined ride" });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Ride request routes
+  app.get("/api/ride-requests", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const requests = await storage.getAllRideRequests();
+      res.json({ requests });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/ride-requests", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const requestData = insertRideRequestSchema.parse({
+        ...req.body,
+        requesterId: userId,
+      });
+      
+      const request = await storage.createRideRequest(requestData);
+      res.json({ request });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid request data" });
     }
   });
 

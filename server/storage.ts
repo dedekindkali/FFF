@@ -1,6 +1,6 @@
-import { users, attendanceRecords, type User, type InsertUser, type AttendanceRecord, type InsertAttendance, type UpdateAttendance } from "@shared/schema";
+import { users, attendanceRecords, rides, rideRequests, type User, type InsertUser, type AttendanceRecord, type InsertAttendance, type UpdateAttendance, type Ride, type InsertRide, type RideRequest, type InsertRideRequest } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -12,6 +12,18 @@ export interface IStorage {
   getAttendanceByUserId(userId: number): Promise<AttendanceRecord | undefined>;
   createAttendance(attendance: InsertAttendance): Promise<AttendanceRecord>;
   updateAttendance(attendance: UpdateAttendance): Promise<AttendanceRecord>;
+  
+  // Ride methods
+  createRide(ride: InsertRide): Promise<Ride>;
+  getAllRides(): Promise<Array<Ride & { driver: User }>>;
+  getRidesByDriverId(driverId: number): Promise<Ride[]>;
+  updateRideSeats(rideId: number, availableSeats: number): Promise<void>;
+  
+  // Ride request methods
+  createRideRequest(request: InsertRideRequest): Promise<RideRequest>;
+  getAllRideRequests(): Promise<Array<RideRequest & { requester: User }>>;
+  getRideRequestsByUserId(userId: number): Promise<RideRequest[]>;
+  updateRideRequestStatus(requestId: number, status: string, rideId?: number): Promise<void>;
   
   // Admin methods
   getAllUsersWithAttendance(): Promise<Array<User & { attendance?: AttendanceRecord }>>;
@@ -115,6 +127,86 @@ export class DatabaseStorage implements IStorage {
     };
 
     return stats;
+  }
+
+  // Ride methods
+  async createRide(ride: InsertRide): Promise<Ride> {
+    const [newRide] = await db
+      .insert(rides)
+      .values(ride)
+      .returning();
+    return newRide;
+  }
+
+  async getAllRides(): Promise<Array<Ride & { driver: User }>> {
+    const result = await db
+      .select()
+      .from(rides)
+      .innerJoin(users, eq(rides.driverId, users.id))
+      .where(eq(rides.isActive, true))
+      .orderBy(desc(rides.createdAt));
+
+    return result.map(row => ({
+      ...row.rides,
+      driver: row.users,
+    }));
+  }
+
+  async getRidesByDriverId(driverId: number): Promise<Ride[]> {
+    return await db
+      .select()
+      .from(rides)
+      .where(eq(rides.driverId, driverId))
+      .orderBy(desc(rides.createdAt));
+  }
+
+  async updateRideSeats(rideId: number, availableSeats: number): Promise<void> {
+    await db
+      .update(rides)
+      .set({ availableSeats })
+      .where(eq(rides.id, rideId));
+  }
+
+  // Ride request methods
+  async createRideRequest(request: InsertRideRequest): Promise<RideRequest> {
+    const [newRequest] = await db
+      .insert(rideRequests)
+      .values(request)
+      .returning();
+    return newRequest;
+  }
+
+  async getAllRideRequests(): Promise<Array<RideRequest & { requester: User }>> {
+    const result = await db
+      .select()
+      .from(rideRequests)
+      .innerJoin(users, eq(rideRequests.requesterId, users.id))
+      .orderBy(desc(rideRequests.createdAt));
+
+    return result.map(row => ({
+      ...row.ride_requests,
+      requester: row.users,
+    }));
+  }
+
+  async getRideRequestsByUserId(userId: number): Promise<RideRequest[]> {
+    return await db
+      .select()
+      .from(rideRequests)
+      .where(eq(rideRequests.requesterId, userId))
+      .orderBy(desc(rideRequests.createdAt));
+  }
+
+  async updateRideRequestStatus(requestId: number, status: string, rideId?: number): Promise<void> {
+    const updateData: any = { status };
+    if (rideId) {
+      updateData.rideId = rideId;
+    }
+    
+    await db
+      .update(rideRequests)
+      .set(updateData)
+      .where(eq(rideRequests.id, requestId));
   }
 }
 

@@ -6,7 +6,8 @@ import { LogIn } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import logoPath from "@assets/FFF_Logo-01_1754153461884.png";
+import { useLanguage } from "@/components/language-provider";
+import logoPath from "@assets/FFF_Logo_white_1754154030771.png";
 
 interface LoginProps {
   onLogin: () => void;
@@ -15,6 +16,7 @@ interface LoginProps {
 export function Login({ onLogin }: LoginProps) {
   const [username, setUsername] = useState("");
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const loginMutation = useMutation({
     mutationFn: (username: string) => apiRequest('POST', '/api/auth/login', { username }),
@@ -45,8 +47,8 @@ export function Login({ onLogin }: LoginProps) {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <img src={logoPath} alt="FroForForno Logo" className="mx-auto h-16 w-16 mb-4" />
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">FroForForno</h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">August 28-30, 2024 Conference</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{t('loginTitle')}</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{t('loginSubtitle')}</p>
         </div>
         
         <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
@@ -54,7 +56,7 @@ export function Login({ onLogin }: LoginProps) {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Username
+                  {t('username')}
                 </label>
                 <Input
                   id="username"
@@ -62,7 +64,7 @@ export function Login({ onLogin }: LoginProps) {
                   type="text"
                   required
                   className="mt-1"
-                  placeholder="Enter your username"
+                  placeholder={t('enterUsername')}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
@@ -74,14 +76,8 @@ export function Login({ onLogin }: LoginProps) {
                 disabled={loginMutation.isPending}
               >
                 <LogIn className="mr-2 h-4 w-4" />
-                {loginMutation.isPending ? "Signing In..." : "Sign In"}
+                {loginMutation.isPending ? t('loading') : t('login')}
               </Button>
-              
-              <div className="text-center">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Don't have an account? Just enter a new username to create one.
-                </p>
-              </div>
             </form>
           </CardContent>
         </Card>

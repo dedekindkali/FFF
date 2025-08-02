@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
-import { Sun, Moon, Home, Calendar, Users, Settings, LogOut } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
+import { Sun, Moon, Home, Calendar, Users, Car, Settings, LogOut, Languages } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import logoPath from "@assets/FFF_Logo-01_1754153461884.png";
+import logoPath from "@assets/FFF_Logo_white_1754154030771.png";
 
 interface NavigationProps {
   currentView: string;
@@ -14,6 +15,7 @@ interface NavigationProps {
 
 export function Navigation({ currentView, onViewChange, onLogout }: NavigationProps) {
   const { theme, setTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
   const { toast } = useToast();
 
   const { data: userData } = useQuery({
@@ -43,10 +45,11 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
   };
 
   const navItems = [
-    { key: 'dashboard', label: 'Dashboard', icon: Home },
-    { key: 'attendance', label: 'Attendance', icon: Calendar },
-    { key: 'participants', label: 'Participants', icon: Users },
-    ...(user?.isAdmin ? [{ key: 'admin', label: 'Admin', icon: Settings }] : []),
+    { key: 'dashboard', label: t('dashboard'), icon: Home },
+    { key: 'attendance', label: t('attendance'), icon: Calendar },
+    { key: 'participants', label: t('participants'), icon: Users },
+    { key: 'rides', label: t('rides'), icon: Car },
+    ...(user?.isAdmin ? [{ key: 'admin', label: t('admin'), icon: Settings }] : []),
   ];
 
   return (
@@ -80,6 +83,16 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
             <div className="flex items-center space-x-2">
               <Button
                 variant="ghost"
+                size="sm"
+                onClick={() => setLanguage(language === 'en' ? 'it' : 'en')}
+                className="h-9 px-3"
+              >
+                <Languages className="h-4 w-4 mr-1" />
+                {language === 'en' ? 'IT' : 'EN'}
+              </Button>
+              
+              <Button
+                variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
                 className="h-9 w-9"
@@ -100,6 +113,7 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
                 size="icon"
                 onClick={() => logoutMutation.mutate()}
                 className="h-9 w-9"
+                title={t('logout')}
               >
                 <LogOut className="h-4 w-4" />
               </Button>

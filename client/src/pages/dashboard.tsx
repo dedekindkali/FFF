@@ -2,17 +2,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Car, Utensils, Users, CalendarPlus, CarFront, Leaf } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useLanguage } from "@/components/language-provider";
 
 interface DashboardProps {
   onNavigate: (view: string) => void;
 }
 
 export function Dashboard({ onNavigate }: DashboardProps) {
+  const { t } = useLanguage();
   const { data: attendanceData } = useQuery({
     queryKey: ['/api/attendance'],
   });
 
+  const { data: ridesData } = useQuery({
+    queryKey: ['/api/rides'],
+  });
+
   const attendance = (attendanceData as any)?.attendance;
+  const rides = (ridesData as any)?.rides || [];
 
   const calculateAttendingDays = () => {
     if (!attendance) return 0;
@@ -41,8 +48,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome to FroForForno</h2>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">August 28-30, 2024 • Manage your attendance and preferences</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('welcomeBack')} FroForForno</h2>
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{t('eventDates')} • Gestisci la tua partecipazione e preferenze</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -69,9 +76,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 <Car className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ride Status</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('rideCoordination')}</p>
                 <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {getRideStatus()}
+                  {rides.length} {t('availableRides')}
                 </p>
               </div>
             </div>
@@ -97,7 +104,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
       <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
         <CardContent className="p-6">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{t('quickActions')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button
               variant="outline"
@@ -105,16 +112,16 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               onClick={() => onNavigate('attendance')}
             >
               <CalendarPlus className="h-6 w-6 text-primary-600 dark:text-primary-400" />
-              <span className="text-sm font-medium">Update Attendance</span>
+              <span className="text-sm font-medium">{t('updateAttendance')}</span>
             </Button>
             
             <Button
               variant="outline"
               className="p-4 h-auto flex-col space-y-2"
-              onClick={() => onNavigate('attendance')}
+              onClick={() => onNavigate('rides')}
             >
               <CarFront className="h-6 w-6 text-primary-600 dark:text-primary-400" />
-              <span className="text-sm font-medium">Manage Rides</span>
+              <span className="text-sm font-medium">{t('rideCoordination')}</span>
             </Button>
             
             <Button
@@ -123,7 +130,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               onClick={() => onNavigate('attendance')}
             >
               <Leaf className="h-6 w-6 text-primary-600 dark:text-primary-400" />
-              <span className="text-sm font-medium">Dietary Preferences</span>
+              <span className="text-sm font-medium">{t('dietaryPreferences')}</span>
             </Button>
             
             <Button
@@ -132,7 +139,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               onClick={() => onNavigate('participants')}
             >
               <Users className="h-6 w-6 text-primary-600 dark:text-primary-400" />
-              <span className="text-sm font-medium">View Participants</span>
+              <span className="text-sm font-medium">{t('viewParticipants')}</span>
             </Button>
           </div>
         </CardContent>

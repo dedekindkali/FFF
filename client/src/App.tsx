@@ -4,11 +4,13 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
+import { LanguageProvider } from "@/components/language-provider";
 import { Navigation } from "@/components/navigation";
 import { Login } from "@/pages/login";
 import { Dashboard } from "@/pages/dashboard";
 import { Attendance } from "@/pages/attendance";
 import { Participants } from "@/pages/participants";
+import { Rides } from "@/pages/rides";
 import { Admin } from "@/pages/admin";
 import { useQuery } from "@tanstack/react-query";
 
@@ -61,6 +63,8 @@ function AppContent() {
         return <Attendance />;
       case 'participants':
         return <Participants />;
+      case 'rides':
+        return <Rides />;
       case 'admin':
         return <Admin />;
       default:
@@ -84,10 +88,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="froforforno-theme">
-        <TooltipProvider>
-          <Toaster />
-          <AppContent />
-        </TooltipProvider>
+        <LanguageProvider>
+          <TooltipProvider>
+            <Toaster />
+            <AppContent />
+          </TooltipProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
