@@ -4,6 +4,7 @@ import { Sun, Moon, Home, Calendar, Users, Settings, LogOut } from "lucide-react
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import logoPath from "@assets/FFF_Logo-01_1754153461884.png";
 
 interface NavigationProps {
   currentView: string;
@@ -53,7 +54,7 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <img src="/attached_assets/FFF_Logo-01_1754153461884.png" alt="FroForForno Logo" className="h-8 w-8 mr-3" />
+            <img src={logoPath} alt="FroForForno Logo" className="h-8 w-8 mr-3" />
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white">FroForForno</h1>
           </div>
           
