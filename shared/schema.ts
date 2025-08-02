@@ -50,7 +50,8 @@ export const rides = pgTable("rides", {
   driverId: integer("driver_id").references(() => users.id).notNull(),
   departure: varchar("departure", { length: 255 }).notNull(),
   destination: varchar("destination", { length: 255 }).notNull(),
-  tripType: varchar("trip_type", { length: 20 }).notNull(), // 'to_massello' or 'from_massello'
+  tripType: varchar("trip_type", { length: 20 }).notNull(), // 'arrival' or 'departure'
+  eventDay: varchar("event_day", { length: 20 }).notNull(), // 'day1', 'day2', 'day3'
   departureTime: varchar("departure_time", { length: 50 }).notNull(),
   availableSeats: integer("available_seats").notNull(),
   totalSeats: integer("total_seats").notNull(),
@@ -65,7 +66,8 @@ export const rideRequests = pgTable("ride_requests", {
   rideId: integer("ride_id").references(() => rides.id),
   departure: varchar("departure", { length: 255 }).notNull(),
   destination: varchar("destination", { length: 255 }).notNull(),
-  tripType: varchar("trip_type", { length: 20 }).notNull(), // 'to_massello' or 'from_massello'
+  tripType: varchar("trip_type", { length: 20 }).notNull(), // 'arrival' or 'departure'
+  eventDay: varchar("event_day", { length: 20 }).notNull(), // 'day1', 'day2', 'day3'
   preferredTime: varchar("preferred_time", { length: 50 }),
   notes: text("notes"),
   status: varchar("status", { length: 20 }).default("open").notNull(), // 'open', 'pending', 'accepted', 'declined'

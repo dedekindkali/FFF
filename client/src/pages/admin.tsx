@@ -3,10 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Calendar, Car, Utensils, Download, Mail, Lock } from "lucide-react";
+import { Users, Calendar, Car, Utensils, Download, Mail, Lock, Trash2 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -36,7 +37,13 @@ export function Admin() {
     enabled: isAuthenticated,
   });
 
+  const { data: usersData } = useQuery({
+    queryKey: ['/api/admin/users'],
+    enabled: isAuthenticated,
+  });
+
   const stats = (statsData as any)?.stats;
+  const users = (usersData as any)?.users || [];
 
   const handleAdminAuth = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +51,25 @@ export function Admin() {
       adminAuthMutation.mutate(password.trim());
     }
   };
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: number) => apiRequest('DELETE', `/api/admin/users/${userId}`),
+    onSuccess: () => {
+      toast({
+        title: "User deleted",
+        description: "User has been successfully deleted.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error deleting user",
+        description: "Failed to delete user.",
+        variant: "destructive",
+      });
+    },
+  });
 
   if (!isAuthenticated) {
     return (
@@ -278,6 +304,78 @@ export function Admin() {
           </CardContent>
         </Card>
       </div>
+
+      {/* User Management */}
+      <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-8">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">User Management</h3>
+          <div className="space-y-4">
+            {users.map((user: any) => (
+              <div key={user.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-4">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">{user.username}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">ID: {user.id}</p>
+                    </div>
+                    {user.isAdmin && (
+                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
+                        Admin
+                      </span>
+                    )}
+                  </div>
+                  {user.attendance && (
+                    <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                      <span>Attending: </span>
+                      {[
+                        user.attendance.day1Breakfast && 'Aug 28 Breakfast',
+                        user.attendance.day1Lunch && 'Aug 28 Lunch',
+                        user.attendance.day1Dinner && 'Aug 28 Dinner',
+                        user.attendance.day1Night && 'Aug 28 Night',
+                        user.attendance.day2Breakfast && 'Aug 29 Breakfast',
+                        user.attendance.day2Lunch && 'Aug 29 Lunch',
+                        user.attendance.day2Dinner && 'Aug 29 Dinner',
+                        user.attendance.day2Night && 'Aug 29 Night',
+                        user.attendance.day3Breakfast && 'Aug 30 Breakfast',
+                        user.attendance.day3Lunch && 'Aug 30 Lunch',
+                        user.attendance.day3Dinner && 'Aug 30 Dinner',
+                        user.attendance.day3Night && 'Aug 30 Night',
+                      ].filter(Boolean).join(', ') || 'No attendance registered'}
+                    </div>
+                  )}
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" disabled={user.isAdmin}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete User</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete user "{user.username}"? This action cannot be undone and will remove all their data including attendance records and rides.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => deleteUserMutation.mutate(user.id)}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Delete User
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            ))}
+            {users.length === 0 && (
+              <p className="text-center text-gray-500 dark:text-gray-400 py-4">No users found</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Export and Actions */}
       <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">

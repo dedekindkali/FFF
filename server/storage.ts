@@ -29,9 +29,13 @@ export interface IStorage {
   // Ride join request methods
   createRideJoinRequest(request: InsertRideJoinRequest): Promise<RideJoinRequest>;
   getRideJoinRequestsForDriver(driverId: number): Promise<Array<RideJoinRequest & { requester: User; ride: Ride }>>;
+  getRideJoinRequestsForUser(userId: number): Promise<Array<RideJoinRequest & { ride: Ride & { driver: User } }>>;
   respondToRideJoinRequest(requestId: number, status: string, driverId: number): Promise<void>;
   
   // Admin methods
+  deleteUser(userId: number): Promise<void>;
+  
+  // Get user stats methods  
   getAllUsersWithAttendance(): Promise<Array<User & { attendance?: AttendanceRecord }>>;
   getAttendanceStats(): Promise<any>;
 }
@@ -144,7 +148,7 @@ export class DatabaseStorage implements IStorage {
     return newRide;
   }
 
-  async getAllRides(): Promise<Array<Ride & { driver: User }>> {
+  async getAllRides(): Promise<Array<Ride & { driver: User; passengers: User[] }>> {
     const result = await db
       .select()
       .from(rides)
@@ -152,10 +156,38 @@ export class DatabaseStorage implements IStorage {
       .where(eq(rides.isActive, true))
       .orderBy(desc(rides.createdAt));
 
-    return result.map(row => ({
+    const ridesWithDriver = result.map(row => ({
       ...row.rides,
       driver: row.users,
     }));
+
+    // Get passengers for each ride (accepted join requests)
+    const ridesWithPassengers = await Promise.all(
+      ridesWithDriver.map(async (ride) => {
+        const passengers = await db
+          .select({
+            id: users.id,
+            username: users.username,
+            isAdmin: users.isAdmin,
+            createdAt: users.createdAt,
+          })
+          .from(rideJoinRequests)
+          .innerJoin(users, eq(rideJoinRequests.requesterId, users.id))
+          .where(
+            and(
+              eq(rideJoinRequests.rideId, ride.id),
+              eq(rideJoinRequests.status, 'accepted')
+            )
+          );
+
+        return {
+          ...ride,
+          passengers,
+        };
+      })
+    );
+
+    return ridesWithPassengers;
   }
 
   async getRidesByDriverId(driverId: number): Promise<Ride[]> {
@@ -273,6 +305,36 @@ export class DatabaseStorage implements IStorage {
         await this.updateRideSeats(ride.id, ride.availableSeats - 1);
       }
     }
+  }
+
+  async getRideJoinRequestsForUser(userId: number): Promise<Array<RideJoinRequest & { ride: Ride & { driver: User } }>> {
+    const result = await db
+      .select()
+      .from(rideJoinRequests)
+      .innerJoin(rides, eq(rideJoinRequests.rideId, rides.id))
+      .innerJoin(users, eq(rides.driverId, users.id))
+      .where(eq(rideJoinRequests.requesterId, userId))
+      .orderBy(desc(rideJoinRequests.createdAt));
+
+    return result.map(row => ({
+      ...row.ride_join_requests,
+      ride: {
+        ...row.rides,
+        driver: row.users,
+      },
+    }));
+  }
+
+  // Admin methods
+  async deleteUser(userId: number): Promise<void> {
+    // Delete related records first due to foreign key constraints
+    await db.delete(attendanceRecords).where(eq(attendanceRecords.userId, userId));
+    await db.delete(rideRequests).where(eq(rideRequests.requesterId, userId));
+    await db.delete(rideJoinRequests).where(eq(rideJoinRequests.requesterId, userId));
+    await db.delete(rides).where(eq(rides.driverId, userId));
+    
+    // Finally delete the user
+    await db.delete(users).where(eq(users.id, userId));
   }
 }
 

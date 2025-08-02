@@ -149,11 +149,11 @@ export function Attendance() {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { key: 'day1Breakfast', label: t('breakfast'), time: '8:00 AM' },
-                { key: 'day1Lunch', label: t('lunch'), time: '12:00 PM' },
-                { key: 'day1Dinner', label: t('dinner'), time: '7:00 PM' },
-                { key: 'day1Night', label: t('overnight'), time: '9:00 PM' },
-              ].map(({ key, label, time }) => (
+                { key: 'day1Breakfast', label: t('breakfast') },
+                { key: 'day1Lunch', label: t('lunch') },
+                { key: 'day1Dinner', label: t('dinner') },
+                { key: 'day1Night', label: t('overnight') },
+              ].map(({ key, label }) => (
                 <label key={key} className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                   <Checkbox
                     checked={formData[key as keyof typeof formData] as boolean}
@@ -161,7 +161,6 @@ export function Attendance() {
                   />
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">{label}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{time}</p>
                   </div>
                 </label>
               ))}
@@ -178,11 +177,11 @@ export function Attendance() {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { key: 'day2Breakfast', label: t('breakfast'), time: '8:00 AM' },
-                { key: 'day2Lunch', label: t('lunch'), time: '12:00 PM' },
-                { key: 'day2Dinner', label: t('dinner'), time: '7:00 PM' },
-                { key: 'day2Night', label: t('overnight'), time: '9:00 PM' },
-              ].map(({ key, label, time }) => (
+                { key: 'day2Breakfast', label: t('breakfast') },
+                { key: 'day2Lunch', label: t('lunch') },
+                { key: 'day2Dinner', label: t('dinner') },
+                { key: 'day2Night', label: t('overnight') },
+              ].map(({ key, label }) => (
                 <label key={key} className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                   <Checkbox
                     checked={formData[key as keyof typeof formData] as boolean}
@@ -190,7 +189,6 @@ export function Attendance() {
                   />
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">{label}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{time}</p>
                   </div>
                 </label>
               ))}
@@ -207,11 +205,11 @@ export function Attendance() {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { key: 'day3Breakfast', label: t('breakfast'), time: '8:00 AM' },
-                { key: 'day3Lunch', label: t('lunch'), time: '12:00 PM' },
-                { key: 'day3Dinner', label: t('dinner'), time: '7:00 PM' },
-                { key: 'day3Night', label: t('overnight'), time: '9:00 PM' },
-              ].map(({ key, label, time }) => (
+                { key: 'day3Breakfast', label: t('breakfast') },
+                { key: 'day3Lunch', label: t('lunch') },
+                { key: 'day3Dinner', label: t('dinner') },
+                { key: 'day3Night', label: t('overnight') },
+              ].map(({ key, label }) => (
                 <label key={key} className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                   <Checkbox
                     checked={formData[key as keyof typeof formData] as boolean}
@@ -219,7 +217,6 @@ export function Attendance() {
                   />
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">{label}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{time}</p>
                   </div>
                 </label>
               ))}

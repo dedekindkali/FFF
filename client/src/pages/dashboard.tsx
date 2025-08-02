@@ -23,6 +23,14 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     queryKey: ['/api/ride-requests'],
   });
 
+  const { data: joinRequestsData } = useQuery({
+    queryKey: ['/api/rides/join-requests'],
+  });
+
+  const { data: rideJoinStatusData } = useQuery({
+    queryKey: ['/api/ride-join-status'],
+  });
+
   const { data: authData } = useQuery({
     queryKey: ['/api/auth/me'],
   });
@@ -30,6 +38,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const attendance = (attendanceData as any)?.attendance;
   const rides = (ridesData as any)?.rides || [];
   const requests = (requestsData as any)?.requests || [];
+  const joinRequests = (joinRequestsData as any)?.requests || [];
+  const rideJoinStatus = (rideJoinStatusData as any)?.joinRequests || [];
   const currentUser = (authData as any)?.user;
 
 
@@ -99,6 +109,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     // Check if user is offering a ride
     const offeringRide = rides.find((ride: any) => ride.driverId === currentUser.id);
     if (offeringRide) {
+      // Check for pending join requests to show notification
+      const pendingJoinRequests = joinRequests.filter((req: any) => req.status === 'pending');
+      const hasNotifications = pendingJoinRequests.length > 0;
+      
       return {
         type: "offering",
         icon: Car,
@@ -106,9 +120,47 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         details: [
           `Route: ${offeringRide.departure} → ${offeringRide.destination}`,
           `Available seats: ${offeringRide.availableSeats}/${offeringRide.totalSeats}`,
+          `Day: ${offeringRide.eventDay === 'day1' ? 'Aug 28' : offeringRide.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}`,
           `Departure: ${offeringRide.departureTime}`,
           offeringRide.notes && `Notes: ${offeringRide.notes}`
         ].filter(Boolean),
+        color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+        hasNotifications,
+        notificationCount: pendingJoinRequests.length
+      };
+    }
+
+    // Check if user has made join requests
+    const myJoinRequest = rideJoinStatus.find((joinReq: any) => joinReq.status === 'pending');
+    if (myJoinRequest) {
+      return {
+        type: "pending-request",
+        icon: Clock,
+        title: "Pending Join Request",
+        details: [
+          `Driver: ${myJoinRequest.ride.driver.username}`,
+          `Route: ${myJoinRequest.ride.departure} → ${myJoinRequest.ride.destination}`,
+          `Day: ${myJoinRequest.ride.eventDay === 'day1' ? 'Aug 28' : myJoinRequest.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}`,
+          `Departure: ${myJoinRequest.ride.departureTime}`,
+          `Status: Waiting for response`
+        ],
+        color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+      };
+    }
+
+    // Check if user has accepted join request 
+    const acceptedJoinRequest = rideJoinStatus.find((joinReq: any) => joinReq.status === 'accepted');
+    if (acceptedJoinRequest) {
+      return {
+        type: "ride-accepted",
+        icon: User,
+        title: `Ride Accepted by ${acceptedJoinRequest.ride.driver.username}`,
+        details: [
+          `Driver: ${acceptedJoinRequest.ride.driver.username}`,
+          `Route: ${acceptedJoinRequest.ride.departure} → ${acceptedJoinRequest.ride.destination}`,
+          `Day: ${acceptedJoinRequest.ride.eventDay === 'day1' ? 'Aug 28' : acceptedJoinRequest.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}`,
+          `Departure: ${acceptedJoinRequest.ride.departureTime}`
+        ],
         color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
       };
     }
@@ -122,30 +174,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         title: t('requestingRide'),
         details: [
           `Route: ${requestingRide.departure} → ${requestingRide.destination}`,
-          `Passengers: ${requestingRide.passengerCount}`,
+          `Day: ${requestingRide.eventDay === 'day1' ? 'Aug 28' : requestingRide.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}`,
           `Preferred time: ${requestingRide.preferredTime}`,
           requestingRide.notes && `Notes: ${requestingRide.notes}`
         ].filter(Boolean),
         color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
-      };
-    }
-
-    // Check if user has joined a ride
-    const joinedRide = rides.find((ride: any) => 
-      ride.passengers && ride.passengers.some((p: any) => p.id === currentUser.id)
-    );
-    if (joinedRide) {
-      return {
-        type: "passenger",
-        icon: User,
-        title: t('joinedRide'),
-        details: [
-          `Driver: ${joinedRide.driverUsername}`,
-          `Route: ${joinedRide.departure} → ${joinedRide.destination}`,
-          `Departure: ${joinedRide.departureTime}`,
-          `Seats taken: ${joinedRide.totalSeats - joinedRide.availableSeats}/${joinedRide.totalSeats}`
-        ],
-        color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
       };
     }
 
@@ -186,8 +219,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+              <div className="relative p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
                 <Car className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                {rideInfo?.hasNotifications && (
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {rideInfo.notificationCount}
+                  </div>
+                )}
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('rideCoordination')}</p>

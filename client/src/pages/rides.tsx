@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Car, Plus, MapPin, Clock, Users, MessageSquare } from "lucide-react";
+import { Car, Plus, MapPin, Clock, Users, MessageSquare, Calendar } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -216,6 +216,27 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin }: { ride: Ride & { dr
             <Users className="h-4 w-4 mr-1" />
             {ride.availableSeats}/{ride.totalSeats} {t('seats')}
           </div>
+
+          <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+            <Calendar className="h-4 w-4 mr-1" />
+            {ride.eventDay === 'day1' ? 'Aug 28' : ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}
+          </div>
+
+          {ride.passengers && ride.passengers.length > 0 && (
+            <div className="text-sm">
+              <p className="text-gray-600 dark:text-gray-400 mb-1">Passengers:</p>
+              <div className="flex flex-wrap gap-1">
+                {ride.passengers.map((passenger: any) => (
+                  <span 
+                    key={passenger.id}
+                    className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded text-xs"
+                  >
+                    {passenger.username}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           
           {ride.notes && (
             <div className="flex items-start text-sm text-gray-600 dark:text-gray-400">
@@ -380,6 +401,7 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide)
   const { t } = useLanguage();
   const [formData, setFormData] = useState({
     tripType: 'departure' as 'arrival' | 'departure',
+    eventDay: 'day1' as 'day1' | 'day2' | 'day3',
     departure: '',
     destination: 'Massello',
     departureTime: '',
@@ -450,6 +472,45 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide)
         </div>
 
         <div>
+          <Label>Event Day</Label>
+          <div className="flex space-x-4 mt-2">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="eventDay"
+                value="day1"
+                checked={formData.eventDay === 'day1'}
+                onChange={(e) => setFormData(prev => ({ ...prev, eventDay: e.target.value as 'day1' }))}
+                className="mr-2"
+              />
+              Aug 28
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="eventDay"
+                value="day2"
+                checked={formData.eventDay === 'day2'}
+                onChange={(e) => setFormData(prev => ({ ...prev, eventDay: e.target.value as 'day2' }))}
+                className="mr-2"
+              />
+              Aug 29
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="eventDay"
+                value="day3"
+                checked={formData.eventDay === 'day3'}
+                onChange={(e) => setFormData(prev => ({ ...prev, eventDay: e.target.value as 'day3' }))}
+                className="mr-2"
+              />
+              Aug 30
+            </label>
+          </div>
+        </div>
+
+        <div>
           <Label htmlFor="location">
             {formData.tripType === 'departure' ? 'Destination' : 'Departure Location'}
           </Label>
@@ -514,19 +575,30 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide)
 function RequestRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRideRequest) => void, isLoading: boolean }) {
   const { t } = useLanguage();
   const [formData, setFormData] = useState({
+    tripType: 'departure' as 'arrival' | 'departure',
+    eventDay: 'day1' as 'day1' | 'day2' | 'day3',
     departure: '',
-    destination: '',
+    destination: 'Massello',
     preferredTime: '',
     notes: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
+    const requestData = {
       ...formData,
       requesterId: 0, // This will be set by the backend
       rideId: null,
-    });
+    };
+    
+    // Adjust departure/destination based on trip type
+    if (formData.tripType === 'arrival') {
+      requestData.destination = 'Massello';
+    } else {
+      requestData.departure = 'Massello';
+    }
+    
+    onSubmit(requestData);
   };
 
   return (
@@ -536,23 +608,100 @@ function RequestRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRid
       </DialogHeader>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Label htmlFor="departure">{t('departure')}</Label>
+          <Label>Trip Type</Label>
+          <div className="flex space-x-4 mt-2">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="tripType"
+                value="departure"
+                checked={formData.tripType === 'departure'}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  tripType: e.target.value as 'departure',
+                  departure: e.target.value === 'departure' ? 'Massello' : '',
+                  destination: e.target.value === 'departure' ? '' : 'Massello'
+                }))}
+                className="mr-2"
+              />
+              Departure from Massello
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="tripType"
+                value="arrival"
+                checked={formData.tripType === 'arrival'}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  tripType: e.target.value as 'arrival',
+                  departure: e.target.value === 'arrival' ? '' : 'Massello',
+                  destination: e.target.value === 'arrival' ? 'Massello' : ''
+                }))}
+                className="mr-2"
+              />
+              Arrival to Massello
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <Label>Event Day</Label>
+          <div className="flex space-x-4 mt-2">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="eventDay"
+                value="day1"
+                checked={formData.eventDay === 'day1'}
+                onChange={(e) => setFormData(prev => ({ ...prev, eventDay: e.target.value as 'day1' }))}
+                className="mr-2"
+              />
+              Aug 28
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="eventDay"
+                value="day2"
+                checked={formData.eventDay === 'day2'}
+                onChange={(e) => setFormData(prev => ({ ...prev, eventDay: e.target.value as 'day2' }))}
+                className="mr-2"
+              />
+              Aug 29
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="eventDay"
+                value="day3"
+                checked={formData.eventDay === 'day3'}
+                onChange={(e) => setFormData(prev => ({ ...prev, eventDay: e.target.value as 'day3' }))}
+                className="mr-2"
+              />
+              Aug 30
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="location">
+            {formData.tripType === 'departure' ? 'Destination' : 'Departure Location'}
+          </Label>
           <Input
-            id="departure"
-            value={formData.departure}
-            onChange={(e) => setFormData(prev => ({ ...prev, departure: e.target.value }))}
+            id="location"
+            value={formData.tripType === 'departure' ? formData.destination : formData.departure}
+            onChange={(e) => setFormData(prev => ({ 
+              ...prev, 
+              [formData.tripType === 'departure' ? 'destination' : 'departure']: e.target.value 
+            }))}
+            placeholder={formData.tripType === 'departure' ? 'Where to?' : 'Where from?'}
             required
           />
         </div>
-        
-        <div>
-          <Label htmlFor="destination">{t('destination')}</Label>
-          <Input
-            id="destination"
-            value={formData.destination}
-            onChange={(e) => setFormData(prev => ({ ...prev, destination: e.target.value }))}
-            required
-          />
+
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          <p><strong>Route:</strong> {formData.tripType === 'departure' ? `Massello → ${formData.destination || '[Destination]'}` : `${formData.departure || '[Origin]'} → Massello`}</p>
         </div>
         
         <div>
