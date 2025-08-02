@@ -31,12 +31,7 @@ export function Admin({ onLogout }: AdminProps) {
   const stats = (statsData as any)?.stats;
   const users = (usersData as any)?.users || [];
 
-  const handleAdminAuth = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password.trim()) {
-      adminAuthMutation.mutate(password.trim());
-    }
-  };
+
 
   const deleteUserMutation = useMutation({
     mutationFn: (userId: number) => apiRequest('DELETE', `/api/admin/users/${userId}`),
@@ -57,49 +52,7 @@ export function Admin({ onLogout }: AdminProps) {
     },
   });
 
-  if (!isAuthenticated) {
-    return (
-      <div className="max-w-md mx-auto py-20 px-4">
-        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-          <CardContent className="p-8">
-            <div className="text-center mb-6">
-              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full w-fit mx-auto mb-4">
-                <Lock className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Access</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                Enter the admin password to access the administration panel.
-              </p>
-            </div>
-            
-            <form onSubmit={handleAdminAuth} className="space-y-4">
-              <div>
-                <Label htmlFor="admin-password">Admin Password</Label>
-                <Input
-                  id="admin-password"
-                  type="password"
-                  required
-                  className="mt-1"
-                  placeholder="Enter admin password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={adminAuthMutation.isPending}
-              >
-                <Lock className="h-4 w-4 mr-2" />
-                {adminAuthMutation.isPending ? "Authenticating..." : "Access Admin Panel"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+
 
   const handleExport = (type: string) => {
     // Open the export endpoint in a new window to trigger download

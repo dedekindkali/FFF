@@ -12,6 +12,9 @@ The system features a modern React frontend with shadcn/ui components and a Node
 - **Italian Localization**: Extended Italian translations to include attendance details and new UI features
 - **Scrollable UI**: Made panels and pop-ups scrollable when content exceeds screen size
 - **Interactive Ride System**: Enhanced ride coordination with notifications and modification capabilities
+- **Separate Admin System**: Implemented completely independent admin authentication and interface
+- **Admin User Management**: Fixed admin user deletion with comprehensive foreign key handling
+- **Streamlined Admin Access**: Admin login now requires only password, goes directly to admin panel
 
 # User Preferences
 
