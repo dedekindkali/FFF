@@ -612,6 +612,7 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
 }) {
   const { t } = useLanguage();
   const [showOfferDialog, setShowOfferDialog] = useState(false);
+  const [showCreateRideDialog, setShowCreateRideDialog] = useState(false);
 
   return (
     <>
@@ -723,7 +724,7 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
             
             {userRides && userRides.length > 0 ? (
               <div className="space-y-3">
-                <p className="text-sm font-secondary-title">{t('selectRide')}:</p>
+                <p className="text-sm font-secondary-title">Select Ride:</p>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {userRides.map((ride: any) => (
                     <div key={ride.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
@@ -746,6 +747,18 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
                     </div>
                   ))}
                 </div>
+                <div className="pt-2 border-t">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setShowOfferDialog(false);
+                      setShowCreateRideDialog(true);
+                    }}
+                    className="w-full"
+                  >
+                    {t('createNewRide')}
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="text-center py-4">
@@ -755,7 +768,7 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
                 <Button 
                   onClick={() => {
                     setShowOfferDialog(false);
-                    // Navigate to create ride
+                    setShowCreateRideDialog(true);
                   }}
                   className="w-full"
                 >
@@ -772,7 +785,141 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={showCreateRideDialog} onOpenChange={setShowCreateRideDialog}>
+        <CreateRideForRequestDialog 
+          request={request}
+          onSubmit={async (rideData) => {
+            try {
+              // Create the new ride
+              const response = await apiRequest('POST', '/api/rides', rideData);
+              const newRide = response.ride;
+              
+              // Automatically invite the requester to the new ride
+              await apiRequest('POST', `/api/rides/${newRide.id}/invite`, {
+                userId: request.requesterId,
+                message: `You've been invited to join this ride that matches your request from ${request.departure} to ${request.destination}`
+              });
+              
+              // Update the request status to indicate an offer was made
+              await apiRequest('PUT', `/api/ride-requests/${request.id}`, {
+                status: 'offered'
+              });
+              
+              queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/ride-requests'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/ride-invitations'] });
+              
+              setShowCreateRideDialog(false);
+              toast({
+                title: "Success",
+                description: `New ride created and offer sent to ${request.requester.username}!`
+              });
+            } catch (error) {
+              console.error('Error creating ride:', error);
+              toast({
+                title: "Error",
+                description: "Failed to create ride. Please try again.",
+                variant: "destructive"
+              });
+            }
+          }}
+          isLoading={false}
+        />
+      </Dialog>
     </>
+  );
+}
+
+function CreateRideForRequestDialog({ request, onSubmit, isLoading }: { 
+  request: any, 
+  onSubmit: (data: InsertRide) => void, 
+  isLoading: boolean 
+}) {
+  const { t } = useLanguage();
+  const [formData, setFormData] = useState({
+    tripType: request.tripType as 'arrival' | 'departure',
+    eventDay: request.eventDay as 'day1' | 'day2' | 'day3',
+    departure: request.departure || '',
+    destination: request.destination || '',
+    departureTime: request.preferredTime || '',
+    totalSeats: 4,
+    notes: `Created to match request from ${request.requester.username}`,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const rideData = {
+      ...formData,
+      availableSeats: formData.totalSeats,
+      driverId: 0, // This will be set by the backend
+    };
+    
+    onSubmit(rideData);
+  };
+
+  return (
+    <DialogContent className="sm:max-w-md scrollable-popup">
+      <DialogHeader>
+        <DialogTitle>Create Ride for {request.requester.username}</DialogTitle>
+        <DialogDescription>
+          Create a new ride that matches this user's request
+        </DialogDescription>
+      </DialogHeader>
+      
+      <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <p className="text-sm font-secondary-title mb-2">Matching Request:</p>
+        <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+          <p><strong>Route:</strong> {request.departure} → {request.destination}</p>
+          <p><strong>Type:</strong> {request.tripType === 'arrival' ? 'Arrival' : 'Departure'}</p>
+          <p><strong>Day:</strong> {request.eventDay === 'day1' ? 'Aug 28' : request.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}</p>
+          {request.preferredTime && <p><strong>Preferred Time:</strong> {request.preferredTime}</p>}
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="departureTime">{t('time')}</Label>
+          <Input
+            id="departureTime"
+            value={formData.departureTime}
+            onChange={(e) => setFormData(prev => ({ ...prev, departureTime: e.target.value }))}
+            placeholder="e.g., 9:00 AM"
+            required
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="totalSeats">{t('seats')}</Label>
+          <Input
+            id="totalSeats"
+            type="number"
+            min="1"
+            max="8"
+            value={formData.totalSeats}
+            onChange={(e) => setFormData(prev => ({ ...prev, totalSeats: parseInt(e.target.value) }))}
+            required
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="notes">{t('notes')}</Label>
+          <Textarea
+            id="notes"
+            value={formData.notes}
+            onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+            placeholder="Additional information..."
+          />
+        </div>
+        
+        <div className="flex space-x-2">
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? t('loading') : 'Create & Invite'}
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
   );
 }
 
