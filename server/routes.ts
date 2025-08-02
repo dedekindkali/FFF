@@ -29,19 +29,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/signup", async (req, res) => {
     try {
-      const { username } = req.body;
+      const userData = insertUserSchema.parse(req.body);
       
-      if (!username) {
+      if (!userData.username) {
         return res.status(400).json({ message: "Username is required" });
       }
 
-      const existingUser = await storage.getUserByUsername(username);
+      const existingUser = await storage.getUserByUsername(userData.username);
       
       if (existingUser) {
         return res.status(409).json({ message: "Username already exists" });
       }
 
-      const user = await storage.createUser({ username });
+      const user = await storage.createUser(userData);
       (req as any).session.userId = user.id;
       res.json({ user });
     } catch (error) {
@@ -71,6 +71,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       res.json({ user });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Admin authentication route
+  app.post("/api/admin/auth", async (req, res) => {
+    try {
+      const { password } = req.body;
+      
+      if (!password) {
+        return res.status(400).json({ message: "Password is required" });
+      }
+
+      // Check if the password matches the admin password
+      if (password === "Autarch3i@") {
+        (req as any).session.adminAuthenticated = true;
+        res.json({ message: "Admin access granted" });
+      } else {
+        res.status(401).json({ message: "Invalid admin password" });
+      }
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
@@ -132,19 +153,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin routes
-  app.get("/api/admin/stats", async (req, res) => {
+  // Admin authentication
+  app.post("/api/admin/auth", async (req, res) => {
     const userId = (req as any).session?.userId;
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
     try {
-      const user = await storage.getUser(userId);
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
+      const { password } = req.body;
+      if (password !== "Autarch3i@") {
+        return res.status(403).json({ message: "Invalid admin password" });
       }
 
+      // Set admin access in session
+      (req as any).session.isAdminAuthenticated = true;
+      res.json({ message: "Admin access granted" });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Admin routes
+  app.get("/api/admin/stats", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    const adminAuthenticated = (req as any).session?.adminAuthenticated;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    if (!adminAuthenticated) {
+      return res.status(403).json({ message: "Admin password required" });
+    }
+
+    try {
       const stats = await storage.getAttendanceStats();
       res.json({ stats });
     } catch (error) {
@@ -154,15 +197,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/export/:type", async (req, res) => {
     const userId = (req as any).session?.userId;
+    const adminAuthenticated = (req as any).session?.adminAuthenticated;
+    
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
+    if (!adminAuthenticated) {
+      return res.status(403).json({ message: "Admin password required" });
+    }
+
     try {
-      const user = await storage.getUser(userId);
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
 
       const { type } = req.params;
       const participants = await storage.getAllUsersWithAttendance();
@@ -235,7 +280,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/rides/:id/join", async (req, res) => {
+  // New ride join request system
+  app.post("/api/rides/:id/request-join", async (req, res) => {
     const userId = (req as any).session?.userId;
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -243,21 +289,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const rideId = parseInt(req.params.id);
-      // This would typically create a ride passenger record and update available seats
-      // For now, just update the available seats
-      const rides = await storage.getAllRides();
-      const ride = rides.find(r => r.id === rideId);
-      
+      const { message } = req.body;
+
+      const ride = await storage.getRide(rideId);
       if (!ride) {
         return res.status(404).json({ message: "Ride not found" });
       }
-      
-      if (ride.availableSeats <= 0) {
-        return res.status(400).json({ message: "No available seats" });
+
+      if (ride.driverId === userId) {
+        return res.status(400).json({ message: "Cannot request to join your own ride" });
       }
-      
-      await storage.updateRideSeats(rideId, ride.availableSeats - 1);
-      res.json({ message: "Successfully joined ride" });
+
+      const joinRequest = await storage.createRideJoinRequest({
+        rideId,
+        requesterId: userId,
+        message: message || ""
+      });
+
+      res.json({ joinRequest });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/rides/join-requests", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const requests = await storage.getRideJoinRequestsForDriver(userId);
+      res.json({ requests });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/rides/join-requests/:id/respond", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const requestId = parseInt(req.params.id);
+      const { status } = req.body;
+
+      if (!['accepted', 'declined'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      await storage.respondToRideJoinRequest(requestId, status, userId);
+      res.json({ message: `Request ${status}` });
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }

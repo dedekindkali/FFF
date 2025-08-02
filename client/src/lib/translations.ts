@@ -32,7 +32,12 @@ export const translations = {
     redirectingToAttendance: "You'll be redirected to set your attendance.",
     
     // Dashboard
-    eventDates: "August 28-30, 2024",
+    eventDates: "August 28-30, 2025",
+    phone: "Phone Number",
+    email: "Email Address",
+    contactOptional: "(optional)",
+    enterPhone: "Enter your phone number",
+    enterEmail: "Enter your email address",
     daysAttending: "Days Attending",
     rideCoordination: "Ride Coordination",
     availableRides: "Available Rides",
@@ -80,8 +85,7 @@ export const translations = {
     manageRides: "Manage Rides",
     adminPanel: "Admin Panel",
     
-    // Participants page
-    participantsSubtitle: "View all registered participants",
+
     searchParticipants: "Search participants...",
     filterByDay: "Filter by day",
     filterByRide: "Filter by ride",
@@ -134,8 +138,13 @@ export const translations = {
     accountCreated: "Account creato con successo!",
     redirectingToAttendance: "Sarai reindirizzato alle impostazioni di partecipazione.",
     
-    // Dashboard
-    eventDates: "28-30 Agosto 2024",
+    // Dashboard  
+    eventDates: "28-30 Agosto, 2025",
+    phone: "Numero di Telefono",
+    email: "Indirizzo Email", 
+    contactOptional: "(opzionale)",
+    enterPhone: "Inserisci il tuo numero di telefono",
+    enterEmail: "Inserisci il tuo indirizzo email",
     daysAttending: "Giorni di Partecipazione",
     rideCoordination: "Coordinamento Passaggi",
     availableRides: "Passaggi Disponibili",
@@ -183,8 +192,7 @@ export const translations = {
     manageRides: "Gestisci Passaggi",
     adminPanel: "Pannello Admin",
     
-    // Participants page
-    participantsSubtitle: "Visualizza tutti i partecipanti registrati",
+
     searchParticipants: "Cerca partecipanti...",
     filterByDay: "Filtra per giorno",
     filterByRide: "Filtra per passaggio",

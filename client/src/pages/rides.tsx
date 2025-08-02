@@ -54,13 +54,33 @@ export function Rides() {
     },
   });
 
-  const joinRideMutation = useMutation({
-    mutationFn: (rideId: number) => apiRequest('POST', `/api/rides/${rideId}/join`),
+  const joinRequestMutation = useMutation({
+    mutationFn: ({ rideId, message }: { rideId: number; message: string }) => 
+      apiRequest('POST', `/api/rides/${rideId}/request-join`, { message }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
       toast({
         title: "Success",
-        description: "Successfully joined the ride!",
+        description: "Join request sent successfully!",
+      });
+    },
+  });
+
+  const { data: joinRequestsData } = useQuery({
+    queryKey: ['/api/rides/join-requests'],
+  });
+
+  const joinRequests = (joinRequestsData as any)?.requests || [];
+
+  const respondToJoinRequestMutation = useMutation({
+    mutationFn: ({ requestId, status }: { requestId: number; status: string }) => 
+      apiRequest('POST', `/api/rides/join-requests/${requestId}/respond`, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/rides/join-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
+      toast({
+        title: "Success",
+        description: "Response sent successfully!",
       });
     },
   });
@@ -99,9 +119,10 @@ export function Rides() {
       </div>
 
       <Tabs defaultValue="available" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="available">{t('availableRides')}</TabsTrigger>
           <TabsTrigger value="requests">{t('rideRequests')}</TabsTrigger>
+          <TabsTrigger value="join-requests">Join Requests</TabsTrigger>
         </TabsList>
         
         <TabsContent value="available" className="space-y-4">
@@ -110,8 +131,8 @@ export function Rides() {
               <RideCard 
                 key={ride.id} 
                 ride={ride} 
-                onJoin={() => joinRideMutation.mutate(ride.id)}
-                isJoining={joinRideMutation.isPending}
+                onRequestJoin={(message) => joinRequestMutation.mutate({ rideId: ride.id, message })}
+                isRequestingJoin={joinRequestMutation.isPending}
               />
             ))}
           </div>
@@ -124,55 +145,132 @@ export function Rides() {
             ))}
           </div>
         </TabsContent>
+
+        <TabsContent value="join-requests" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {joinRequests.map((request: any) => (
+              <JoinRequestCard 
+                key={request.id} 
+                request={request} 
+                onRespond={(status) => respondToJoinRequestMutation.mutate({ requestId: request.id, status })}
+                isResponding={respondToJoinRequestMutation.isPending}
+              />
+            ))}
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-function RideCard({ ride, onJoin, isJoining }: { ride: Ride & { driver: any }, onJoin: () => void, isJoining: boolean }) {
+function RideCard({ ride, onRequestJoin, isRequestingJoin }: { ride: Ride & { driver: any }, onRequestJoin: (message: string) => void, isRequestingJoin: boolean }) {
   const { t } = useLanguage();
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [joinMessage, setJoinMessage] = useState("");
+
+  const handleRequestJoin = () => {
+    if (ride.tripType === 'arrival') {
+      setShowJoinDialog(true);
+    } else {
+      onRequestJoin(joinMessage);
+    }
+  };
+
+  const handleConfirmJoin = () => {
+    onRequestJoin(joinMessage);
+    setShowJoinDialog(false);
+    setJoinMessage("");
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center text-lg">
-          <Car className="h-5 w-5 mr-2" />
-          {ride.driver.username}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-          <MapPin className="h-4 w-4 mr-1" />
-          {ride.departure} → {ride.destination}
-        </div>
-        
-        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-          <Clock className="h-4 w-4 mr-1" />
-          {ride.departureTime}
-        </div>
-        
-        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-          <Users className="h-4 w-4 mr-1" />
-          {ride.availableSeats}/{ride.totalSeats} {t('seats')}
-        </div>
-        
-        {ride.notes && (
-          <div className="flex items-start text-sm text-gray-600 dark:text-gray-400">
-            <MessageSquare className="h-4 w-4 mr-1 mt-0.5" />
-            <span className="text-xs">{ride.notes}</span>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between text-lg">
+            <div className="flex items-center">
+              <Car className="h-5 w-5 mr-2" />
+              {ride.driver.username}
+            </div>
+            <div className="flex items-center space-x-2">
+              {ride.tripType === 'arrival' && (
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Arrival</span>
+              )}
+              {ride.tripType === 'departure' && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Departure</span>
+              )}
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+            <MapPin className="h-4 w-4 mr-1" />
+            {ride.departure} → {ride.destination}
           </div>
-        )}
-        
-        <Button 
-          onClick={onJoin} 
-          disabled={isJoining || ride.availableSeats === 0}
-          className="w-full"
-          size="sm"
-        >
-          {ride.availableSeats === 0 ? "Full" : t('joinRide')}
-        </Button>
-      </CardContent>
-    </Card>
+          
+          <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+            <Clock className="h-4 w-4 mr-1" />
+            {ride.departureTime}
+          </div>
+          
+          <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+            <Users className="h-4 w-4 mr-1" />
+            {ride.availableSeats}/{ride.totalSeats} {t('seats')}
+          </div>
+          
+          {ride.notes && (
+            <div className="flex items-start text-sm text-gray-600 dark:text-gray-400">
+              <MessageSquare className="h-4 w-4 mr-1 mt-0.5" />
+              <span className="text-xs">{ride.notes}</span>
+            </div>
+          )}
+          
+          <Button 
+            onClick={handleRequestJoin} 
+            disabled={isRequestingJoin || ride.availableSeats === 0}
+            className="w-full"
+            size="sm"
+          >
+            {ride.availableSeats === 0 ? "Full" : "Request to Join"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Dialog open={showJoinDialog} onOpenChange={setShowJoinDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request to Join Ride</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <p><strong>Trip:</strong> {ride.tripType === 'arrival' ? 'Arrival' : 'Departure'}</p>
+              <p><strong>Route:</strong> {ride.departure} → Massello</p>
+              <p><strong>Time:</strong> {ride.departureTime}</p>
+              <p><strong>Driver:</strong> {ride.driver.username}</p>
+            </div>
+            
+            <div>
+              <Label htmlFor="join-message">Message (optional)</Label>
+              <Textarea
+                id="join-message"
+                value={joinMessage}
+                onChange={(e) => setJoinMessage(e.target.value)}
+                placeholder="Let the driver know anything relevant..."
+                className="mt-1"
+              />
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={() => setShowJoinDialog(false)} className="w-full">
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmJoin} disabled={isRequestingJoin} className="w-full">
+                Send Request
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -212,11 +310,78 @@ function RequestCard({ request }: { request: RideRequest & { requester: any } })
   );
 }
 
+function JoinRequestCard({ request, onRespond, isResponding }: { 
+  request: any, 
+  onRespond: (status: string) => void, 
+  isResponding: boolean 
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          <div className="flex items-center justify-between">
+            <span>{request.requester.username}</span>
+            <span className="text-sm text-gray-500">wants to join</span>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          <p><strong>Ride:</strong> {request.ride.departure} → {request.ride.destination}</p>
+          <p><strong>Time:</strong> {request.ride.departureTime}</p>
+          <p><strong>Trip Type:</strong> {request.ride.tripType === 'arrival' ? 'Arrival' : 'Departure'}</p>
+        </div>
+        
+        {request.message && (
+          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <p className="text-sm text-gray-700 dark:text-gray-300">{request.message}</p>
+          </div>
+        )}
+        
+        {request.status === 'pending' && (
+          <div className="flex space-x-2">
+            <Button 
+              onClick={() => onRespond('accepted')} 
+              disabled={isResponding}
+              className="w-full bg-green-600 hover:bg-green-700"
+              size="sm"
+            >
+              Accept
+            </Button>
+            <Button 
+              onClick={() => onRespond('declined')} 
+              disabled={isResponding}
+              variant="outline"
+              className="w-full"
+              size="sm"
+            >
+              Decline
+            </Button>
+          </div>
+        )}
+        
+        {request.status !== 'pending' && (
+          <div className="text-center text-sm font-medium">
+            <span className={`px-2 py-1 rounded ${
+              request.status === 'accepted' 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-red-100 text-red-800'
+            }`}>
+              {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+            </span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide) => void, isLoading: boolean }) {
   const { t } = useLanguage();
   const [formData, setFormData] = useState({
+    tripType: 'departure' as 'arrival' | 'departure',
     departure: '',
-    destination: '',
+    destination: 'Massello',
     departureTime: '',
     totalSeats: 4,
     notes: '',
@@ -224,11 +389,20 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
+    const rideData = {
       ...formData,
       availableSeats: formData.totalSeats,
       driverId: 0, // This will be set by the backend
-    });
+    };
+    
+    // Adjust departure/destination based on trip type
+    if (formData.tripType === 'arrival') {
+      rideData.destination = 'Massello';
+    } else {
+      rideData.departure = 'Massello';
+    }
+    
+    onSubmit(rideData);
   };
 
   return (
@@ -238,23 +412,61 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide)
       </DialogHeader>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Label htmlFor="departure">{t('departure')}</Label>
+          <Label>Trip Type</Label>
+          <div className="flex space-x-4 mt-2">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="tripType"
+                value="departure"
+                checked={formData.tripType === 'departure'}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  tripType: e.target.value as 'departure',
+                  departure: e.target.value === 'departure' ? 'Massello' : '',
+                  destination: e.target.value === 'departure' ? '' : 'Massello'
+                }))}
+                className="mr-2"
+              />
+              Departure from Massello
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="tripType"
+                value="arrival"
+                checked={formData.tripType === 'arrival'}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  tripType: e.target.value as 'arrival',
+                  departure: e.target.value === 'arrival' ? '' : 'Massello',
+                  destination: e.target.value === 'arrival' ? 'Massello' : ''
+                }))}
+                className="mr-2"
+              />
+              Arrival to Massello
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="location">
+            {formData.tripType === 'departure' ? 'Destination' : 'Departure Location'}
+          </Label>
           <Input
-            id="departure"
-            value={formData.departure}
-            onChange={(e) => setFormData(prev => ({ ...prev, departure: e.target.value }))}
+            id="location"
+            value={formData.tripType === 'departure' ? formData.destination : formData.departure}
+            onChange={(e) => setFormData(prev => ({ 
+              ...prev, 
+              [formData.tripType === 'departure' ? 'destination' : 'departure']: e.target.value 
+            }))}
+            placeholder={formData.tripType === 'departure' ? 'Where to?' : 'Where from?'}
             required
           />
         </div>
-        
-        <div>
-          <Label htmlFor="destination">{t('destination')}</Label>
-          <Input
-            id="destination"
-            value={formData.destination}
-            onChange={(e) => setFormData(prev => ({ ...prev, destination: e.target.value }))}
-            required
-          />
+
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          <p><strong>Route:</strong> {formData.tripType === 'departure' ? `Massello → ${formData.destination || '[Destination]'}` : `${formData.departure || '[Origin]'} → Massello`}</p>
         </div>
         
         <div>

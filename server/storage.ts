@@ -1,4 +1,4 @@
-import { users, attendanceRecords, rides, rideRequests, type User, type InsertUser, type AttendanceRecord, type InsertAttendance, type UpdateAttendance, type Ride, type InsertRide, type RideRequest, type InsertRideRequest } from "@shared/schema";
+import { users, attendanceRecords, rides, rideRequests, rideJoinRequests, type User, type InsertUser, type AttendanceRecord, type InsertAttendance, type UpdateAttendance, type Ride, type InsertRide, type RideRequest, type InsertRideRequest, type RideJoinRequest, type InsertRideJoinRequest } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
@@ -17,6 +17,7 @@ export interface IStorage {
   createRide(ride: InsertRide): Promise<Ride>;
   getAllRides(): Promise<Array<Ride & { driver: User }>>;
   getRidesByDriverId(driverId: number): Promise<Ride[]>;
+  getRide(rideId: number): Promise<Ride | undefined>;
   updateRideSeats(rideId: number, availableSeats: number): Promise<void>;
   
   // Ride request methods
@@ -24,6 +25,11 @@ export interface IStorage {
   getAllRideRequests(): Promise<Array<RideRequest & { requester: User }>>;
   getRideRequestsByUserId(userId: number): Promise<RideRequest[]>;
   updateRideRequestStatus(requestId: number, status: string, rideId?: number): Promise<void>;
+  
+  // Ride join request methods
+  createRideJoinRequest(request: InsertRideJoinRequest): Promise<RideJoinRequest>;
+  getRideJoinRequestsForDriver(driverId: number): Promise<Array<RideJoinRequest & { requester: User; ride: Ride }>>;
+  respondToRideJoinRequest(requestId: number, status: string, driverId: number): Promise<void>;
   
   // Admin methods
   getAllUsersWithAttendance(): Promise<Array<User & { attendance?: AttendanceRecord }>>;
@@ -160,6 +166,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(rides.createdAt));
   }
 
+  async getRide(rideId: number): Promise<Ride | undefined> {
+    const [ride] = await db.select().from(rides).where(eq(rides.id, rideId));
+    return ride || undefined;
+  }
+
   async updateRideSeats(rideId: number, availableSeats: number): Promise<void> {
     await db
       .update(rides)
@@ -207,6 +218,61 @@ export class DatabaseStorage implements IStorage {
       .update(rideRequests)
       .set(updateData)
       .where(eq(rideRequests.id, requestId));
+  }
+
+  // Ride join request methods
+  async createRideJoinRequest(request: InsertRideJoinRequest): Promise<RideJoinRequest> {
+    const [newRequest] = await db
+      .insert(rideJoinRequests)
+      .values(request)
+      .returning();
+    return newRequest;
+  }
+
+  async getRideJoinRequestsForDriver(driverId: number): Promise<Array<RideJoinRequest & { requester: User; ride: Ride }>> {
+    const result = await db
+      .select()
+      .from(rideJoinRequests)
+      .innerJoin(rides, eq(rideJoinRequests.rideId, rides.id))
+      .innerJoin(users, eq(rideJoinRequests.requesterId, users.id))
+      .where(eq(rides.driverId, driverId))
+      .orderBy(desc(rideJoinRequests.createdAt));
+
+    return result.map(row => ({
+      ...row.ride_join_requests,
+      requester: row.users,
+      ride: row.rides,
+    }));
+  }
+
+  async respondToRideJoinRequest(requestId: number, status: string, driverId: number): Promise<void> {
+    // First verify the driver owns the ride
+    const joinRequest = await db
+      .select()
+      .from(rideJoinRequests)
+      .innerJoin(rides, eq(rideJoinRequests.rideId, rides.id))
+      .where(eq(rideJoinRequests.id, requestId))
+      .limit(1);
+
+    if (!joinRequest.length || joinRequest[0].rides.driverId !== driverId) {
+      throw new Error("Unauthorized to respond to this request");
+    }
+
+    await db
+      .update(rideJoinRequests)
+      .set({ 
+        status, 
+        respondedAt: new Date() 
+      })
+      .where(eq(rideJoinRequests.id, requestId));
+
+    // If accepted, reduce available seats
+    if (status === 'accepted') {
+      const ride = joinRequest[0].rides;
+      if (ride.availableSeats > 0) {
+        await this.updateRideSeats(ride.id, ride.availableSeats - 1);
+      }
+    }
   }
 }
 

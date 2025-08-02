@@ -36,7 +36,6 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
     { id: 'attendance', label: t('attendance'), icon: Calendar },
     { id: 'participants', label: t('participants'), icon: Users },
     { id: 'rides', label: t('rides'), icon: Car },
-    { id: 'admin', label: t('admin'), icon: Settings },
   ];
 
   const handleNavigation = (view: string) => {

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 import { LogIn, UserPlus } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,7 +18,11 @@ interface LoginProps {
 
 export function Login({ onLogin, onSignUp }: LoginProps) {
   const [username, setUsername] = useState("");
-  const [signUpUsername, setSignUpUsername] = useState("");
+  const [signUpData, setSignUpData] = useState({
+    username: "",
+    email: "",
+    phone: ""
+  });
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -47,7 +52,7 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
   });
 
   const signUpMutation = useMutation({
-    mutationFn: (username: string) => apiRequest('POST', '/api/auth/signup', { username }),
+    mutationFn: (userData: typeof signUpData) => apiRequest('POST', '/api/auth/signup', userData),
     onSuccess: () => {
       toast({
         title: t('accountCreated'),
@@ -81,8 +86,13 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
 
   const handleSignUp = (e: React.FormEvent) => {
     e.preventDefault();
-    if (signUpUsername.trim()) {
-      signUpMutation.mutate(signUpUsername.trim());
+    if (signUpData.username.trim()) {
+      const userData = {
+        username: signUpData.username.trim(),
+        ...(signUpData.email.trim() && { email: signUpData.email.trim() }),
+        ...(signUpData.phone.trim() && { phone: signUpData.phone.trim() })
+      };
+      signUpMutation.mutate(userData);
     }
   };
 
@@ -145,9 +155,7 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
                 
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div>
-                    <label htmlFor="signup-username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {t('chooseUsername')}
-                    </label>
+                    <Label htmlFor="signup-username">{t('chooseUsername')}</Label>
                     <Input
                       id="signup-username"
                       name="signup-username"
@@ -155,8 +163,34 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
                       required
                       className="mt-1"
                       placeholder={t('enterNewUsername')}
-                      value={signUpUsername}
-                      onChange={(e) => setSignUpUsername(e.target.value)}
+                      value={signUpData.username}
+                      onChange={(e) => setSignUpData(prev => ({ ...prev, username: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="signup-email">{t('email')} {t('contactOptional')}</Label>
+                    <Input
+                      id="signup-email"
+                      name="signup-email"
+                      type="email"
+                      className="mt-1"
+                      placeholder={t('enterEmail')}
+                      value={signUpData.email}
+                      onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="signup-phone">{t('phone')} {t('contactOptional')}</Label>
+                    <Input
+                      id="signup-phone"
+                      name="signup-phone"
+                      type="tel"
+                      className="mt-1"
+                      placeholder={t('enterPhone')}
+                      value={signUpData.phone}
+                      onChange={(e) => setSignUpData(prev => ({ ...prev, phone: e.target.value }))}
                     />
                   </div>
                   

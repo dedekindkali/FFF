@@ -32,16 +32,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const requests = (requestsData as any)?.requests || [];
   const currentUser = (authData as any)?.user;
 
-  const calculateAttendingDays = () => {
-    if (!attendance) return 0;
-    
-    let days = 0;
-    if (attendance.day1Breakfast || attendance.day1Lunch || attendance.day1Dinner || attendance.day1Night) days++;
-    if (attendance.day2Breakfast || attendance.day2Lunch || attendance.day2Dinner || attendance.day2Night) days++;
-    if (attendance.day3Breakfast || attendance.day3Lunch || attendance.day3Dinner || attendance.day3Night) days++;
-    
-    return days;
-  };
+
 
   const getAttendancePeriods = () => {
     if (!attendance) return [];
@@ -190,21 +181,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                <Calendar className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('daysAttending')}</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {calculateAttendingDays()}/3
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
 
         <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
@@ -283,7 +260,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       )}
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Button
           onClick={() => onNavigate('attendance')}
           className="h-20 flex flex-col items-center justify-center space-y-2"
@@ -311,14 +288,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <span className="text-sm">{t('viewParticipants')}</span>
         </Button>
 
-        <Button
-          onClick={() => onNavigate('admin')}
-          className="h-20 flex flex-col items-center justify-center space-y-2"
-          variant="outline"
-        >
-          <Leaf className="h-6 w-6" />
-          <span className="text-sm">{t('adminPanel')}</span>
-        </Button>
+
       </div>
     </div>
   );
