@@ -660,18 +660,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.clearNotificationsForInvitation(invitationId);
 
       // If accepted, add user to the ride (create join request)
+      // Don't decrement seats yet - wait for driver's final acceptance
       if (status === 'accepted') {
         await storage.createRideJoinRequest({
           rideId: invitation.rideId,
           requesterId: userId,
           message: "Accepted ride invitation",
         });
-
-        // Update ride available seats
-        const ride = await storage.getRide(invitation.rideId);
-        if (ride && ride.availableSeats > 0) {
-          await storage.updateRideSeats(invitation.rideId, ride.availableSeats - 1);
-        }
       }
 
       res.json({ message: `Invitation ${status} successfully` });
