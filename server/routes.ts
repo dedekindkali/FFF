@@ -29,7 +29,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/signup", async (req, res) => {
     try {
+      console.log('Sign-up request body:', req.body);
       const userData = insertUserSchema.parse(req.body);
+      console.log('Parsed user data:', userData);
       
       if (!userData.username) {
         return res.status(400).json({ message: "Username is required" });
@@ -45,6 +47,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       (req as any).session.userId = user.id;
       res.json({ user });
     } catch (error) {
+      console.error('Sign-up error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", details: error.errors });
+      }
       res.status(500).json({ message: "Internal server error" });
     }
   });
