@@ -611,6 +611,7 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
   onNavigate?: (view: string, userId?: number) => void
 }) {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [showOfferDialog, setShowOfferDialog] = useState(false);
   const [showCreateRideDialog, setShowCreateRideDialog] = useState(false);
 
@@ -756,7 +757,7 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
                     }}
                     className="w-full"
                   >
-                    "Create New Ride"
+                    Create New Ride
                   </Button>
                 </div>
               </div>
@@ -772,7 +773,7 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
                   }}
                   className="w-full"
                 >
-                  "Create New Ride"
+                  Create New Ride
                 </Button>
               </div>
             )}
@@ -793,7 +794,7 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
             try {
               // Create the new ride
               const response = await apiRequest('POST', '/api/rides', rideData);
-              const newRide = response.ride;
+              const newRide = (response as any).ride;
               
               // Automatically invite the requester to the new ride
               await apiRequest('POST', `/api/rides/${newRide.id}/invite`, {
