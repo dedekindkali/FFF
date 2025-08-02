@@ -88,6 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if the password matches the admin password
       if (password === "Autarch3i@") {
         (req as any).session.adminAuthenticated = true;
+        (req as any).session.isAdmin = true;
         res.json({ message: "Admin access granted" });
       } else {
         res.status(401).json({ message: "Invalid admin password" });
@@ -266,13 +267,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin routes
   app.get("/api/admin/stats", async (req, res) => {
-    const userId = (req as any).session?.userId;
     const adminAuthenticated = (req as any).session?.adminAuthenticated;
     
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
     if (!adminAuthenticated) {
       return res.status(403).json({ message: "Admin password required" });
     }
@@ -286,13 +282,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/admin/users", async (req, res) => {
-    const userId = (req as any).session?.userId;
     const adminAuthenticated = (req as any).session?.adminAuthenticated;
     
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
     if (!adminAuthenticated) {
       return res.status(403).json({ message: "Admin password required" });
     }
@@ -306,13 +297,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/admin/users/:id", async (req, res) => {
-    const userId = (req as any).session?.userId;
     const adminAuthenticated = (req as any).session?.adminAuthenticated;
     
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
     if (!adminAuthenticated) {
       return res.status(403).json({ message: "Admin password required" });
     }
@@ -331,13 +317,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/admin/export/:type", async (req, res) => {
-    const userId = (req as any).session?.userId;
     const adminAuthenticated = (req as any).session?.adminAuthenticated;
     
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
     if (!adminAuthenticated) {
       return res.status(403).json({ message: "Admin password required" });
     }

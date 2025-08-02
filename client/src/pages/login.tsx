@@ -23,10 +23,7 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
     email: "",
     phone: ""
   });
-  const [adminData, setAdminData] = useState({
-    username: "",
-    password: ""
-  });
+  const [adminPassword, setAdminPassword] = useState("");
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -82,11 +79,9 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
   });
 
   const adminLoginMutation = useMutation({
-    mutationFn: async (adminData: { username: string; password: string }) => {
-      // First login as user
-      await apiRequest('POST', '/api/auth/login', { username: adminData.username });
-      // Then authenticate as admin
-      await apiRequest('POST', '/api/admin/auth', { password: adminData.password });
+    mutationFn: async (password: string) => {
+      // Direct admin authentication - no user login required
+      await apiRequest('POST', '/api/admin/auth', { password });
       return true;
     },
     onSuccess: () => {
@@ -97,13 +92,7 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
       onLogin();
     },
     onError: (error: any) => {
-      if (error?.message?.includes('not found')) {
-        toast({
-          title: "User not found",
-          description: "Please check your username and try again.",
-          variant: "destructive",
-        });
-      } else if (error?.message?.includes('Invalid admin password')) {
+      if (error?.message?.includes('Invalid admin password')) {
         toast({
           title: "Invalid admin password",
           description: "Please check your admin password and try again.",
@@ -140,11 +129,8 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminData.username.trim() && adminData.password.trim()) {
-      adminLoginMutation.mutate({
-        username: adminData.username.trim(),
-        password: adminData.password.trim()
-      });
+    if (adminPassword.trim()) {
+      adminLoginMutation.mutate(adminPassword.trim());
     }
   };
 
@@ -267,20 +253,6 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
                 
                 <form onSubmit={handleAdminLogin} className="space-y-4">
                   <div>
-                    <Label htmlFor="admin-username">Username</Label>
-                    <Input
-                      id="admin-username"
-                      name="admin-username"
-                      type="text"
-                      required
-                      className="mt-1"
-                      placeholder="Enter your username"
-                      value={adminData.username}
-                      onChange={(e) => setAdminData(prev => ({ ...prev, username: e.target.value }))}
-                    />
-                  </div>
-
-                  <div>
                     <Label htmlFor="admin-password">Admin Password</Label>
                     <Input
                       id="admin-password"
@@ -289,8 +261,8 @@ export function Login({ onLogin, onSignUp }: LoginProps) {
                       required
                       className="mt-1"
                       placeholder="Enter admin password"
-                      value={adminData.password}
-                      onChange={(e) => setAdminData(prev => ({ ...prev, password: e.target.value }))}
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
                     />
                   </div>
                   
