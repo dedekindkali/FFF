@@ -267,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes
   app.get("/api/admin/stats", async (req, res) => {
     const userId = (req as any).session?.userId;
-    const adminAuthenticated = (req as any).session?.isAdminAuthenticated;
+    const adminAuthenticated = (req as any).session?.adminAuthenticated;
     
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -287,7 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/users", async (req, res) => {
     const userId = (req as any).session?.userId;
-    const adminAuthenticated = (req as any).session?.isAdminAuthenticated;
+    const adminAuthenticated = (req as any).session?.adminAuthenticated;
     
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
