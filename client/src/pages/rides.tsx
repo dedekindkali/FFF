@@ -791,27 +791,43 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
         <CreateRideForRequestDialog 
           request={request}
           onSubmit={async (rideData) => {
+            let createdRide = null;
+            
             try {
-              // Create the new ride
+              // Step 1: Create the new ride
               console.log('Creating ride with data:', rideData);
               const response = await apiRequest('POST', '/api/rides', rideData);
-              const newRide = (response as any).ride;
-              console.log('Ride created successfully:', newRide);
+              createdRide = (response as any).ride;
+              console.log('Ride created successfully:', createdRide);
               
-              // Automatically invite the requester to the new ride
-              console.log('Sending invitation to user:', request.requesterId);
-              const inviteResponse = await apiRequest('POST', `/api/rides/${newRide.id}/invite`, {
-                userId: request.requesterId,
-                message: `You've been invited to join this ride that matches your request from ${request.departure} to ${request.destination}`
-              });
-              console.log('Invitation sent successfully:', inviteResponse);
+              if (!createdRide) {
+                throw new Error('Ride creation failed - no ride returned from API');
+              }
               
-              // Update the request status to indicate an offer was made
-              console.log('Updating request status for request:', request.id);
-              const updateResponse = await apiRequest('PUT', `/api/ride-requests/${request.id}`, {
-                status: 'offered'
-              });
-              console.log('Request status updated successfully:', updateResponse);
+              // Step 2: Send invitation to the requester
+              try {
+                console.log('Sending invitation to user:', request.requesterId);
+                const inviteResponse = await apiRequest('POST', `/api/rides/${createdRide.id}/invite`, {
+                  userId: request.requesterId,
+                  message: `You've been invited to join this ride that matches your request from ${request.departure} to ${request.destination}`
+                });
+                console.log('Invitation sent successfully:', inviteResponse);
+              } catch (inviteError) {
+                console.warn('Failed to send invitation:', inviteError);
+                // Continue - ride was created successfully
+              }
+              
+              // Step 3: Update request status
+              try {
+                console.log('Updating request status for request:', request.id);
+                const updateResponse = await apiRequest('PUT', `/api/ride-requests/${request.id}`, {
+                  status: 'offered'
+                });
+                console.log('Request status updated successfully:', updateResponse);
+              } catch (updateError) {
+                console.warn('Failed to update request status:', updateError);
+                // Continue - ride was created successfully
+              }
               
               // Refresh all relevant data
               queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
@@ -822,24 +838,18 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
               setShowCreateRideDialog(false);
               toast({
                 title: "Success",
-                description: `New ride created and offer sent to ${request.requester.username}!`
+                description: `New ride created successfully! ${createdRide.departure} → ${createdRide.destination}`
               });
+              
             } catch (error) {
               console.error('Error in ride creation process:', error);
-              // Check if it's a network error or API error
-              if (error && typeof error === 'object' && 'message' in error) {
-                toast({
-                  title: "Error",
-                  description: (error as any).message || "Failed to create ride. Please try again.",
-                  variant: "destructive"
-                });
-              } else {
-                toast({
-                  title: "Error", 
-                  description: "Failed to create ride. Please try again.",
-                  variant: "destructive"
-                });
-              }
+              
+              setShowCreateRideDialog(false);
+              toast({
+                title: "Error",
+                description: "Failed to create ride. Please try again.",
+                variant: "destructive"
+              });
             }
           }}
           isLoading={false}
