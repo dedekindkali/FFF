@@ -756,7 +756,7 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
                     }}
                     className="w-full"
                   >
-                    {t('createNewRide')}
+                    "Create New Ride"
                   </Button>
                 </div>
               </div>
@@ -772,7 +772,7 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
                   }}
                   className="w-full"
                 >
-                  {t('createNewRide')}
+                  "Create New Ride"
                 </Button>
               </div>
             )}
