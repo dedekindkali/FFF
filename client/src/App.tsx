@@ -83,7 +83,7 @@ function AppContent() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="event-manager-theme">
+      <ThemeProvider defaultTheme="dark" storageKey="froforforno-theme">
         <TooltipProvider>
           <Toaster />
           <AppContent />

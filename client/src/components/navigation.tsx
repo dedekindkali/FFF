@@ -53,8 +53,8 @@ export function Navigation({ currentView, onViewChange, onLogout }: NavigationPr
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <img src="/attached_assets/FFF_Logo-01.png" alt="Event Logo" className="h-8 w-8 mr-3" />
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Event Manager</h1>
+            <img src="/attached_assets/FFF_Logo-01_1754153461884.png" alt="FroForForno Logo" className="h-8 w-8 mr-3" />
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">FroForForno</h1>
           </div>
           
           <div className="flex items-center space-x-4">

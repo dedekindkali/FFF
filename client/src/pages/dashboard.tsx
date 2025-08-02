@@ -41,7 +41,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome to the Conference</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome to FroForForno</h2>
         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">August 28-30, 2024 • Manage your attendance and preferences</p>
       </div>
 

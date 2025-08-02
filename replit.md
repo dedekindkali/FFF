@@ -1,6 +1,6 @@
 # Overview
 
-This is a full-stack event management application designed for a three-day conference (August 28-30, 2024). The application enables attendees to register their attendance for various meal periods and overnight stays across the conference days, manage dietary preferences, handle transportation coordination, and includes administrative features for event organizers.
+This is a full-stack event management application for FroForForno, designed for a three-day conference (August 28-30, 2024). The application enables attendees to register their attendance for various meal periods and overnight stays across the conference days, manage dietary preferences, handle transportation coordination, and includes administrative features for event organizers.
 
 The system features a modern React frontend with shadcn/ui components and a Node.js/Express backend, using PostgreSQL with Drizzle ORM for data persistence. The application supports both regular attendees and administrators, with role-based access control for management features.
 

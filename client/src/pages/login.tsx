@@ -43,8 +43,8 @@ export function Login({ onLogin }: LoginProps) {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <img src="/attached_assets/FFF_Logo-01.png" alt="Event Logo" className="mx-auto h-16 w-16 mb-4" />
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Event Management</h2>
+          <img src="/attached_assets/FFF_Logo-01_1754153461884.png" alt="FroForForno Logo" className="mx-auto h-16 w-16 mb-4" />
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">FroForForno</h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">August 28-30, 2024 Conference</p>
         </div>
         
