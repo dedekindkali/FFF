@@ -89,9 +89,15 @@ function AppContent() {
       case 'participants':
         return <Participants onNavigate={setCurrentView} />;
       case 'rides':
-        return <Rides />;
+        return <Rides onNavigate={(view, userId) => {
+          if (view === 'profile' && userId) {
+            setCurrentView(`profile/${userId}`);
+          } else {
+            setCurrentView(view);
+          }
+        }} />;
       case 'admin':
-        return <Admin />;
+        return <Admin onLogout={handleLogout} />;
       default:
         return <Dashboard onNavigate={setCurrentView} />;
     }

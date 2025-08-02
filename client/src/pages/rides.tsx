@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/components/language-provider";
 import type { Ride, RideRequest, InsertRide, InsertRideRequest } from "@shared/schema";
 
-export function Rides() {
+export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: number) => void }) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [showOfferDialog, setShowOfferDialog] = useState(false);
@@ -216,6 +216,7 @@ export function Rides() {
                   setEditingRide(ride);
                   setShowModifyDialog(true);
                 }}
+                onNavigate={onNavigate}
               />
             ))}
           </div>
@@ -260,6 +261,7 @@ export function Rides() {
                     }
                   }
                 }}
+                onNavigate={onNavigate}
               />
             ))}
           </div>
@@ -273,6 +275,7 @@ export function Rides() {
                 request={request} 
                 onRespond={(status) => respondToJoinRequestMutation.mutate({ requestId: request.id, status })}
                 isResponding={respondToJoinRequestMutation.isPending}
+                onNavigate={onNavigate}
               />
             ))}
           </div>
@@ -286,6 +289,7 @@ export function Rides() {
                 invitation={invitation} 
                 onRespond={(status) => respondToRideInvitationMutation.mutate({ invitationId: invitation.id, status })}
                 isResponding={respondToRideInvitationMutation.isPending}
+                onNavigate={onNavigate}
               />
             ))}
           </div>
@@ -297,6 +301,7 @@ export function Rides() {
               <UserJoinRequestCard 
                 key={request.id} 
                 request={request} 
+                onNavigate={onNavigate}
               />
             ))}
           </div>
@@ -419,12 +424,13 @@ function ModifyRideDialog({ ride, onSubmit, isLoading }: {
   );
 }
 
-function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModifyRide }: { 
+function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModifyRide, onNavigate }: { 
   ride: Ride & { driver: any }, 
   onRequestJoin: (message: string) => void, 
   isRequestingJoin: boolean,
   currentUser?: any,
-  onModifyRide?: (ride: any) => void
+  onModifyRide?: (ride: any) => void,
+  onNavigate?: (view: string, userId?: number) => void
 }) {
   const { t } = useLanguage();
   const [showJoinDialog, setShowJoinDialog] = useState(false);
@@ -451,7 +457,12 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModify
           <CardTitle className="flex items-center justify-between text-lg">
             <div className="flex items-center">
               <Car className="h-5 w-5 mr-2" />
-              {ride.driver.username}
+              <button 
+                onClick={() => onNavigate?.('profile', ride.driver.id)}
+                className="title-font text-ff-primary hover:text-ff-primary/80 transition-colors cursor-pointer"
+              >
+                {ride.driver.username}
+              </button>
             </div>
             <div className="flex items-center space-x-2">
               {ride.tripType === 'arrival' && (
@@ -592,11 +603,12 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModify
   );
 }
 
-function RequestCard({ request, currentUser, userRides, onOfferRide }: { 
+function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate }: { 
   request: RideRequest & { requester: any },
   currentUser: any,
   userRides?: any[],
-  onOfferRide?: (requestId: number, selectedRideId?: number) => void 
+  onOfferRide?: (requestId: number, selectedRideId?: number) => void,
+  onNavigate?: (view: string, userId?: number) => void
 }) {
   const { t } = useLanguage();
   const [showOfferDialog, setShowOfferDialog] = useState(false);
@@ -608,7 +620,12 @@ function RequestCard({ request, currentUser, userRides, onOfferRide }: {
           <CardTitle className="flex items-center justify-between text-lg">
             <div className="flex items-center">
               <User className="h-5 w-5 mr-2" />
-              {request.requester.username}
+              <button 
+                onClick={() => onNavigate?.('profile', request.requester.id)}
+                className="title-font text-ff-primary hover:text-ff-primary/80 transition-colors cursor-pointer"
+              >
+                {request.requester.username}
+              </button>
             </div>
             <div className="flex items-center space-x-2">
               {request.tripType === 'arrival' && (
@@ -759,17 +776,23 @@ function RequestCard({ request, currentUser, userRides, onOfferRide }: {
   );
 }
 
-function JoinRequestCard({ request, onRespond, isResponding }: { 
+function JoinRequestCard({ request, onRespond, isResponding, onNavigate }: { 
   request: any, 
   onRespond: (status: string) => void, 
-  isResponding: boolean 
+  isResponding: boolean,
+  onNavigate?: (view: string, userId?: number) => void
 }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">
           <div className="flex items-center justify-between">
-            <span>{request.requester.username}</span>
+            <button 
+              onClick={() => onNavigate?.('profile', request.requester.id)}
+              className="title-font text-ff-primary hover:text-ff-primary/80 transition-colors cursor-pointer"
+            >
+              {request.requester.username}
+            </button>
             <span className="text-sm text-gray-500">wants to join</span>
           </div>
         </CardTitle>
@@ -1166,7 +1189,7 @@ function RequestRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRid
   );
 }
 
-function UserJoinRequestCard({ request }: { request: any }) {
+function UserJoinRequestCard({ request, onNavigate }: { request: any; onNavigate?: (view: string, userId?: number) => void }) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'accepted': return 'text-green-600 bg-green-100';
@@ -1197,7 +1220,12 @@ function UserJoinRequestCard({ request }: { request: any }) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          <p><strong>Driver:</strong> {request.ride.driver.username}</p>
+          <p><strong>Driver:</strong> <button 
+            onClick={() => onNavigate?.('profile', request.ride.driver.id)}
+            className="title-font text-ff-primary hover:text-ff-primary/80 transition-colors cursor-pointer inline"
+          >
+            {request.ride.driver.username}
+          </button></p>
           <p><strong>Route:</strong> {request.ride.departure} → {request.ride.destination}</p>
           <p><strong>Time:</strong> {request.ride.departureTime}</p>
           <p><strong>Trip Type:</strong> {request.ride.tripType === 'arrival' ? 'Arrival' : 'Departure'}</p>
@@ -1222,10 +1250,11 @@ function UserJoinRequestCard({ request }: { request: any }) {
   );
 }
 
-function RideInvitationCard({ invitation, onRespond, isResponding }: { 
+function RideInvitationCard({ invitation, onRespond, isResponding, onNavigate }: { 
   invitation: any; 
   onRespond: (status: string) => void; 
-  isResponding: boolean 
+  isResponding: boolean;
+  onNavigate?: (view: string, userId?: number) => void;
 }) {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -1260,7 +1289,12 @@ function RideInvitationCard({ invitation, onRespond, isResponding }: {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          <p><strong>Driver:</strong> {invitation.ride.driver.username}</p>
+          <p><strong>Driver:</strong> <button 
+            onClick={() => onNavigate?.('profile', invitation.ride.driver.id)}
+            className="title-font text-ff-primary hover:text-ff-primary/80 transition-colors cursor-pointer inline"
+          >
+            {invitation.ride.driver.username}
+          </button></p>
           <p><strong>Route:</strong> {invitation.ride.departure} → {invitation.ride.destination}</p>
           <p><strong>Time:</strong> {invitation.ride.departureTime}</p>
           <p><strong>Trip Type:</strong> {invitation.ride.tripType === 'arrival' ? 'Arrival' : 'Departure'}</p>
