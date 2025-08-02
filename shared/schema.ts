@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, boolean, json, timestamp, serial } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, boolean, json, timestamp, serial, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -12,7 +12,7 @@ export const users = pgTable("users", {
 
 export const attendanceRecords = pgTable("attendance_records", {
   id: serial("id").primaryKey(),
-  userId: serial("user_id").references(() => users.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
   // Day 1 - August 28
   day1Breakfast: boolean("day1_breakfast").default(false).notNull(),
   day1Lunch: boolean("day1_lunch").default(false).notNull(),
