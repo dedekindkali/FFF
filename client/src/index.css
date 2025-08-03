@@ -134,3 +134,13 @@
   max-height: 70vh;
   overflow-y: auto;
 }
+
+/* Force 24-hour time format */
+input[type="time"]::-webkit-datetime-edit-ampm-field {
+  display: none;
+}
+
+input[type="time"] {
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}

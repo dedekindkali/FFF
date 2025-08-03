@@ -653,9 +653,11 @@ function ModifyRideDialog({ ride, onSubmit, isLoading }: {
         <Input
           id="departureTime"
           type="time"
+          step="60"
           value={departureTime}
           onChange={(e) => setDepartureTime(e.target.value)}
           required
+          className="[&::-webkit-datetime-edit-ampm-field]:hidden"
         />
       </div>
       
@@ -1475,9 +1477,11 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide 
           <Input
             id="departureTime"
             type="time"
+            step="60"
             value={formData.departureTime}
             onChange={(e) => setFormData(prev => ({ ...prev, departureTime: e.target.value }))}
             required
+            className="[&::-webkit-datetime-edit-ampm-field]:hidden"
           />
         </div>
         
@@ -1684,8 +1688,10 @@ function RequestRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRid
           <Input
             id="preferredTime"
             type="time"
+            step="60"
             value={formData.preferredTime}
             onChange={(e) => setFormData(prev => ({ ...prev, preferredTime: e.target.value }))}
+            className="[&::-webkit-datetime-edit-ampm-field]:hidden"
           />
         </div>
         
