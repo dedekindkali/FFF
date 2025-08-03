@@ -306,6 +306,31 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         </Card>
       )}
 
+      {/* Detailed Ride Information */}
+      <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
+        <CardContent className="p-6">
+          <div className="flex items-center mb-4">
+            <Car className="h-5 w-5 text-ff-primary mr-2" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Ride Details</h3>
+          </div>
+          {rideInfo && rideInfo.details.length > 0 ? (
+            <div className="space-y-2">
+              {rideInfo.details.map((detail, index) => (
+                <div key={index} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                  <div className="w-2 h-2 bg-ff-primary rounded-full mr-3"></div>
+                  <span>{detail}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+              <div className="w-2 h-2 bg-gray-400 rounded-full mr-3"></div>
+              <span>No active ride coordination</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
 
 
       {/* Quick Actions */}
