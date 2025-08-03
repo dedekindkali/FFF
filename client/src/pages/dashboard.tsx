@@ -215,12 +215,12 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       return {
         type: "ride-accepted",
         icon: User,
-        title: `Ride Accepted by ${acceptedJoinRequest.ride.driver.username}`,
+        title: `${t('rideAccepted')} ${acceptedJoinRequest.ride.driver.username}`,
         details: [
-          `Driver: ${acceptedJoinRequest.ride.driver.username}`,
-          `Route: ${acceptedJoinRequest.ride.departure} → ${acceptedJoinRequest.ride.destination}`,
-          `Day: ${acceptedJoinRequest.ride.eventDay === 'day1' ? 'Aug 28' : acceptedJoinRequest.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}`,
-          `Departure: ${acceptedJoinRequest.ride.departureTime}`
+          `${t('driver')}: ${acceptedJoinRequest.ride.driver.username}`,
+          `${t('route')}: ${acceptedJoinRequest.ride.departure} → ${acceptedJoinRequest.ride.destination}`,
+          `${t('day')}: ${acceptedJoinRequest.ride.eventDay === 'day1' ? 'Aug 28' : acceptedJoinRequest.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}`,
+          `${t('departure')}: ${acceptedJoinRequest.ride.departureTime}`
         ],
         color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
       };
@@ -247,10 +247,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         icon: MapPin,
         title: t('requestingRide'),
         details: [
-          `Route: ${requestingRide.departure} → ${requestingRide.destination}`,
-          `Day: ${requestingRide.eventDay === 'day1' ? 'Aug 28' : requestingRide.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}`,
-          `Preferred time: ${requestingRide.preferredTime}`,
-          requestingRide.notes && `Notes: ${requestingRide.notes}`
+          `${t('route')}: ${requestingRide.departure} → ${requestingRide.destination}`,
+          `${t('day')}: ${requestingRide.eventDay === 'day1' ? 'Aug 28' : requestingRide.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}`,
+          `${t('preferredTime')}: ${requestingRide.preferredTime}`,
+          requestingRide.notes && `${t('notes')}: ${requestingRide.notes}`
         ].filter(Boolean),
         color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
       };
@@ -272,12 +272,12 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         id: ride.id,
         type: "driver",
         title: `${ride.tripType} ${eventDay} ${ride.departureTime}`,
-        role: "driver",
+        role: t('driver'),
         details: {
           route: `${ride.departure} → ${ride.destination}`,
           day: eventDay,
           time: ride.departureTime,
-          seats: `${ride.availableSeats}/${ride.totalSeats} seats available`,
+          seats: `${ride.availableSeats}/${ride.totalSeats} ${t('seatsAvailable')}`,
           notes: ride.notes
         },
         hasNotifications: joinRequests.filter((req: any) => req.rideId === ride.id && req.status === 'pending').length > 0,
@@ -293,7 +293,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         id: joinReq.ride.id,
         type: "passenger",
         title: `${joinReq.ride.tripType} ${eventDay} ${joinReq.ride.departureTime}`,
-        role: "passenger",
+        role: t('passenger'),
         details: {
           route: `${joinReq.ride.departure} → ${joinReq.ride.destination}`,
           day: eventDay,
@@ -402,7 +402,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <CardContent className="p-6">
               <div className="flex items-center mb-4">
                 <Car className="h-5 w-5 text-ff-primary mr-2" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Ride Details</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('rideDetails')}</h3>
               </div>
               <div className="space-y-3">
                 {allRides.map((ride: any, index: number) => {

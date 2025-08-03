@@ -7,6 +7,7 @@ import { Users, Calendar, Car, Utensils, Download, Mail, Lock, Trash2 } from "lu
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useLanguage } from "@/components/language-provider";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface AdminProps {
@@ -17,6 +18,7 @@ export function Admin({ onLogout }: AdminProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(true); // Start authenticated since we're already in admin mode
   const [password, setPassword] = useState("");
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const { data: statsData, isLoading } = useQuery({
     queryKey: ['/api/admin/stats'],
@@ -37,16 +39,16 @@ export function Admin({ onLogout }: AdminProps) {
     mutationFn: (userId: number) => apiRequest('DELETE', `/api/admin/users/${userId}`),
     onSuccess: () => {
       toast({
-        title: "User deleted",
-        description: "User has been successfully deleted.",
+        title: t('userDeleted'),
+        description: t('userDeletedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
     onError: (error: any) => {
       toast({
-        title: "Error deleting user",
-        description: "Failed to delete user.",
+        title: t('errorDeletingUser'),
+        description: t('errorDeletingUserDesc'),
         variant: "destructive",
       });
     },
@@ -91,7 +93,7 @@ export function Admin({ onLogout }: AdminProps) {
     return (
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <div className="text-center py-12">
-          <p className="text-red-500">Access denied. Admin privileges required.</p>
+          <p className="text-red-500">{t('accessDenied')}</p>
         </div>
       </div>
     );
@@ -101,12 +103,12 @@ export function Admin({ onLogout }: AdminProps) {
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Event overview and management tools</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('adminDashboard')}</h2>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{t('adminSubtitle')}</p>
         </div>
         <Button onClick={handleLogout} variant="outline" size="sm">
           <Lock className="h-4 w-4 mr-2" />
-          Logout
+          {t('logout')}
         </Button>
       </div>
 
@@ -271,7 +273,7 @@ export function Admin({ onLogout }: AdminProps) {
                     </div>
                     {user.isAdmin && (
                       <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
-                        Admin
+                        {t('admin')}
                       </span>
                     )}
                   </div>
