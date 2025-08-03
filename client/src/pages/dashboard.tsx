@@ -323,28 +323,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         </Card>
       )}
 
-      {/* Detailed Ride Information */}
-      {rideInfo && (
-        <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
-          <CardContent className="p-6">
-            <div className="flex items-center mb-4">
-              <rideInfo.icon className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('rideDetails')}</h3>
-              <Badge className={`ml-auto ${rideInfo.color}`}>
-                {rideInfo.title}
-              </Badge>
-            </div>
-            <div className="space-y-2">
-              {rideInfo.details.map((detail: string, index: number) => (
-                <div key={index} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                  <span>{detail}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
