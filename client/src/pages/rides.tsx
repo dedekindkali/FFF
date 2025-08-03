@@ -237,15 +237,16 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
   });
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('ridesTitle')}</h1>
-        <div className="flex space-x-4">
+    <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{t('ridesTitle')}</h1>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
           <Dialog open={showOfferDialog} onOpenChange={setShowOfferDialog}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
-                {t('offerRide')}
+                <span className="hidden sm:inline">{t('offerRide')}</span>
+                <span className="sm:hidden">Offer</span>
               </Button>
             </DialogTrigger>
             <OfferRideDialog 
@@ -256,9 +257,10 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
 
           <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
-                {t('requestRide')}
+                <span className="hidden sm:inline">{t('requestRide')}</span>
+                <span className="sm:hidden">Request</span>
               </Button>
             </DialogTrigger>
             <RequestRideDialog 
@@ -271,8 +273,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
 
       {/* Search and Filter Section */}
       <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-        <CardContent className="p-4 space-y-4">
-          <div className="flex items-center space-x-4">
+        <CardContent className="p-3 md:p-4 space-y-3 md:space-y-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -292,28 +294,30 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
                 </Button>
               )}
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className={showFilters ? "bg-ff-primary text-white" : ""}
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              {t('filters')}
-            </Button>
-            {(searchTerm || (eventDayFilter && eventDayFilter !== 'all') || (rideTypeFilter && rideTypeFilter !== 'all') || (availabilityFilter && availabilityFilter !== 'all')) && (
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                {t('filtersActive')}
-              </div>
-            )}
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className={`${showFilters ? "bg-ff-primary text-white" : ""} whitespace-nowrap`}
+              >
+                <Filter className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{t('filters')}</span>
+              </Button>
+              {(searchTerm || (eventDayFilter && eventDayFilter !== 'all') || (rideTypeFilter && rideTypeFilter !== 'all') || (availabilityFilter && availabilityFilter !== 'all')) && (
+                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                  {t('filtersActive')}
+                </div>
+              )}
+            </div>
           </div>
           
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 p-3 md:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <div className="space-y-2">
-                <Label className="text-sm font-medium">{t('eventDay')}</Label>
+                <Label className="text-xs md:text-sm font-medium">{t('eventDay')}</Label>
                 <Select value={eventDayFilter} onValueChange={setEventDayFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-xs md:text-sm">
                     <SelectValue placeholder={t('allDays')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -326,9 +330,9 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
               </div>
               
               <div className="space-y-2">
-                <Label className="text-sm font-medium">{t('rideType')}</Label>
+                <Label className="text-xs md:text-sm font-medium">{t('rideType')}</Label>
                 <Select value={rideTypeFilter} onValueChange={setRideTypeFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-xs md:text-sm">
                     <SelectValue placeholder={t('allTypes')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -339,10 +343,10 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
                 </Select>
               </div>
               
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">{t('availability')}</Label>
+              <div className="space-y-2 sm:col-span-2 lg:col-span-1">
+                <Label className="text-xs md:text-sm font-medium">{t('availability')}</Label>
                 <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-xs md:text-sm">
                     <SelectValue placeholder={t('allAvailability')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -353,7 +357,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
                 </Select>
               </div>
               
-              <div className="md:col-span-3 flex justify-end space-x-2">
+              <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
                 <Button
                   variant="outline"
                   size="sm"
@@ -363,6 +367,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
                     setRideTypeFilter("all");
                     setAvailabilityFilter("all");
                   }}
+                  className="text-xs md:text-sm"
                 >
                   {t('clearFilters')}
                 </Button>
@@ -373,54 +378,59 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
       </Card>
 
       <Tabs defaultValue="available" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="available" className="relative">
-            {t('availableRides')}
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto">
+          <TabsTrigger value="available" className="relative text-xs md:text-sm p-2 md:p-3">
+            <span className="block md:hidden">Available</span>
+            <span className="hidden md:block">{t('availableRides')}</span>
             {(() => {
               const availableRides = rides.filter((ride: any) => ride.availableSeats > 0 && ride.isActive);
               return availableRides.length > 0 && (
-                <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center">
                   {availableRides.length}
                 </div>
               );
             })()}
           </TabsTrigger>
-          <TabsTrigger value="requests" className="relative">
-            {t('requestedRides')}
+          <TabsTrigger value="requests" className="relative text-xs md:text-sm p-2 md:p-3">
+            <span className="block md:hidden">Requests</span>
+            <span className="hidden md:block">{t('requestedRides')}</span>
             {(() => {
               const openRequests = requests.filter((req: any) => req.status === 'open' || !req.status);
               return openRequests.length > 0 && (
-                <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center">
                   {openRequests.length}
                 </div>
               );
             })()}
           </TabsTrigger>
-          <TabsTrigger value="join-requests" className="relative">
-            {t('joinRequests')}
+          <TabsTrigger value="join-requests" className="relative text-xs md:text-sm p-2 md:p-3 col-span-2 md:col-span-1">
+            <span className="block md:hidden">Join Requests</span>
+            <span className="hidden md:block">{t('joinRequests')}</span>
             {(() => {
               const pendingJoinRequests = joinRequests.filter((req: any) => req.status === 'pending');
               return pendingJoinRequests.length > 0 && (
-                <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center">
                   {pendingJoinRequests.length}
                 </div>
               );
             })()}
           </TabsTrigger>
-          <TabsTrigger value="invitations" className="relative">
-            Ride Invitations
+          <TabsTrigger value="invitations" className="relative text-xs md:text-sm p-2 md:p-3">
+            <span className="block md:hidden">Invitations</span>
+            <span className="hidden md:block">Ride Invitations</span>
             {rideInvitations.filter((inv: any) => inv.status === 'pending').length > 0 && (
-              <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center">
                 {rideInvitations.filter((inv: any) => inv.status === 'pending').length}
               </div>
             )}
           </TabsTrigger>
-          <TabsTrigger value="my-requests" className="relative">
-            {t('myRequests')}
+          <TabsTrigger value="my-requests" className="relative text-xs md:text-sm p-2 md:p-3">
+            <span className="block md:hidden">My Requests</span>
+            <span className="hidden md:block">{t('myRequests')}</span>
             {(() => {
               const pendingUserRequests = userJoinRequests.filter((req: any) => req.status === 'pending');
               return pendingUserRequests.length > 0 && (
-                <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center">
                   {pendingUserRequests.length}
                 </div>
               );
@@ -428,8 +438,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="available" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <TabsContent value="available" className="space-y-3 md:space-y-4">
+          <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {filterItems(rides, 'rides').map((ride: Ride & { driver: any }) => (
               <RideCard 
                 key={ride.id} 
@@ -447,8 +457,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
           </div>
         </TabsContent>
         
-        <TabsContent value="requests" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <TabsContent value="requests" className="space-y-3 md:space-y-4">
+          <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {filterItems(requests, 'requests').map((request: RideRequest & { requester: any }) => (
               <RequestCard 
                 key={request.id} 
@@ -492,8 +502,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
           </div>
         </TabsContent>
 
-        <TabsContent value="join-requests" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <TabsContent value="join-requests" className="space-y-3 md:space-y-4">
+          <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {filterItems(joinRequests, 'joinRequests').map((request: any) => (
               <JoinRequestCard 
                 key={request.id} 
@@ -506,8 +516,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
           </div>
         </TabsContent>
 
-        <TabsContent value="invitations" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <TabsContent value="invitations" className="space-y-3 md:space-y-4">
+          <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {filterItems(rideInvitations, 'invitations').map((invitation: any) => (
               <RideInvitationCard 
                 key={invitation.id} 
@@ -520,8 +530,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
           </div>
         </TabsContent>
 
-        <TabsContent value="my-requests" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <TabsContent value="my-requests" className="space-y-3 md:space-y-4">
+          <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {filterItems(userJoinRequests, 'joinRequests').map((request: any) => (
               <UserJoinRequestCard 
                 key={request.id} 
