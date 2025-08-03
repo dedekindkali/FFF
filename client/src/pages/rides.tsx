@@ -296,7 +296,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
               <Button className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">{t('offerRide')}</span>
-                <span className="sm:hidden">Offer</span>
+                <span className="sm:hidden">{t('offer')}</span>
               </Button>
             </DialogTrigger>
             <OfferRideDialog 
@@ -310,7 +310,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
               <Button variant="outline" className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">{t('requestRide')}</span>
-                <span className="sm:hidden">Request</span>
+                <span className="sm:hidden">{t('request')}</span>
               </Button>
             </DialogTrigger>
             <RequestRideDialog 
@@ -430,7 +430,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
       <Tabs defaultValue="available" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto">
           <TabsTrigger value="available" className="relative text-xs md:text-sm p-2 md:p-3">
-            <span className="block md:hidden">Available</span>
+            <span className="block md:hidden">{t('available')}</span>
             <span className="hidden md:block">{t('availableRides')}</span>
             {(() => {
               const availableRides = rides.filter((ride: any) => ride.availableSeats > 0 && ride.isActive);
@@ -442,7 +442,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
             })()}
           </TabsTrigger>
           <TabsTrigger value="requests" className="relative text-xs md:text-sm p-2 md:p-3">
-            <span className="block md:hidden">Requests</span>
+            <span className="block md:hidden">{t('requests')}</span>
             <span className="hidden md:block">{t('requestedRides')}</span>
             {(() => {
               const openRequests = requests.filter((req: any) => req.status === 'open' || (!req.status && req.status !== 'fulfilled'));
@@ -454,7 +454,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
             })()}
           </TabsTrigger>
           <TabsTrigger value="join-requests" className="relative text-xs md:text-sm p-2 md:p-3 col-span-2 md:col-span-1">
-            <span className="block md:hidden">Join Requests</span>
+            <span className="block md:hidden">{t('joinRequests')}</span>
             <span className="hidden md:block">{t('joinRequests')}</span>
             {(() => {
               const pendingJoinRequests = joinRequests.filter((req: any) => req.status === 'pending');
@@ -466,8 +466,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
             })()}
           </TabsTrigger>
           <TabsTrigger value="invitations" className="relative text-xs md:text-sm p-2 md:p-3">
-            <span className="block md:hidden">Invitations</span>
-            <span className="hidden md:block">Ride Invitations</span>
+            <span className="block md:hidden">{t('invitations')}</span>
+            <span className="hidden md:block">{t('invitations')}</span>
             {rideInvitations.filter((inv: any) => inv.status === 'pending').length > 0 && (
               <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center">
                 {rideInvitations.filter((inv: any) => inv.status === 'pending').length}
@@ -475,7 +475,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
             )}
           </TabsTrigger>
           <TabsTrigger value="my-requests" className="relative text-xs md:text-sm p-2 md:p-3">
-            <span className="block md:hidden">My Requests</span>
+            <span className="block md:hidden">{t('myRequests')}</span>
             <span className="hidden md:block">{t('myRequests')}</span>
             {(() => {
               const pendingUserRequests = userJoinRequests.filter((req: any) => req.status === 'pending');
@@ -1302,7 +1302,7 @@ function JoinRequestCard({ request, onRespond, isResponding, onNavigate }: {
               className="w-full bg-green-600 hover:bg-green-700"
               size="sm"
             >
-              Accept
+              {t('accept')}
             </Button>
             <Button 
               onClick={() => onRespond('declined')} 
@@ -1311,7 +1311,7 @@ function JoinRequestCard({ request, onRespond, isResponding, onNavigate }: {
               className="w-full"
               size="sm"
             >
-              Decline
+              {t('decline')}
             </Button>
           </div>
         )}

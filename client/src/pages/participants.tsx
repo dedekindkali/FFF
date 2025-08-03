@@ -175,9 +175,9 @@ export function Participants({ onNavigate }: ParticipantsProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('allDays')}</SelectItem>
-            <SelectItem value="day1">Wednesday, Aug 28</SelectItem>
-            <SelectItem value="day2">Thursday, Aug 29</SelectItem>
-            <SelectItem value="day3">Friday, Aug 30</SelectItem>
+            <SelectItem value="day1">{t('wednesday')}, {t('august28')}</SelectItem>
+            <SelectItem value="day2">{t('thursday')}, {t('august29')}</SelectItem>
+            <SelectItem value="day3">{t('friday')}, {t('august30')}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -210,7 +210,7 @@ export function Participants({ onNavigate }: ParticipantsProps) {
                       </h3>
                       {participant.isAdmin && (
                         <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                          Admin
+                          {t('admin')}
                         </Badge>
                       )}
                     </div>
@@ -219,7 +219,7 @@ export function Participants({ onNavigate }: ParticipantsProps) {
                       {/* Attending Periods */}
                       <div>
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                          Attending Periods
+                          {t('attendanceStatus')}
                         </p>
                         <div className="space-y-1">
                           {attendancePeriods.length > 0 ? (
@@ -230,7 +230,7 @@ export function Participants({ onNavigate }: ParticipantsProps) {
                             ))
                           ) : (
                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                              No attendance recorded
+                              {t('noAttendance')}
                             </span>
                           )}
                         </div>

@@ -386,7 +386,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               {attendancePeriods.map((period, index) => (
                 <div key={index} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
                   <div className="w-2 h-2 bg-ff-primary rounded-full mr-3"></div>
-                  <span className="capitalize">{period}</span>
+                  <span className="capitalize">{t(period)}</span>
                 </div>
               ))}
             </div>
@@ -446,11 +446,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                       <CollapsibleContent>
                         <div className="mt-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                           <div className="space-y-2 text-sm">
-                            <div><span className="font-medium">Route:</span> {ride.details.route}</div>
-                            <div><span className="font-medium">Time:</span> {ride.details.time}</div>
-                            {ride.details.driver && <div><span className="font-medium">Driver:</span> {ride.details.driver}</div>}
-                            {ride.details.seats && <div><span className="font-medium">Seats:</span> {ride.details.seats}</div>}
-                            {ride.details.notes && <div><span className="font-medium">Notes:</span> {ride.details.notes}</div>}
+                            <div><span className="font-medium">{t('route')}:</span> {ride.details.route}</div>
+                            <div><span className="font-medium">{t('time')}:</span> {ride.details.time}</div>
+                            {ride.details.driver && <div><span className="font-medium">{t('driver')}:</span> {ride.details.driver}</div>}
+                            {ride.details.seats && <div><span className="font-medium">{t('seats')}:</span> {ride.details.seats}</div>}
+                            {ride.details.notes && <div><span className="font-medium">{t('notes')}:</span> {ride.details.notes}</div>}
                           </div>
                         </div>
                       </CollapsibleContent>
