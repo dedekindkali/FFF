@@ -306,12 +306,12 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
 
 
-    // Sort rides chronologically by departure time
+    // Sort rides chronologically by departure time (24-hour format)
     return userRides.sort((a, b) => {
       const timeA = a.details.time;
       const timeB = b.details.time;
       
-      // Convert time strings to comparable format (assuming HH:MM format)
+      // Convert 24-hour time strings to comparable format (HH:MM)
       const [hoursA, minutesA] = timeA.split(':').map(Number);
       const [hoursB, minutesB] = timeB.split(':').map(Number);
       
