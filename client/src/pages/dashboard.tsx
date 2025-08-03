@@ -271,7 +271,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       userRides.push({
         id: ride.id,
         type: "driver",
-        title: `departure ${eventDay} ${ride.departureTime}`,
+        title: `${ride.tripType} ${eventDay} ${ride.departureTime}`,
         role: "driver",
         details: {
           route: `${ride.departure} → ${ride.destination}`,
@@ -292,7 +292,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       userRides.push({
         id: joinReq.ride.id,
         type: "passenger",
-        title: `arrival ${eventDay} ${joinReq.ride.departureTime}`,
+        title: `${joinReq.ride.tripType} ${eventDay} ${joinReq.ride.departureTime}`,
         role: "passenger",
         details: {
           route: `${joinReq.ride.departure} → ${joinReq.ride.destination}`,
