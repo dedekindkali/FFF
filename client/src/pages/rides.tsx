@@ -1060,17 +1060,8 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
                 // Continue - ride was created successfully
               }
               
-              // Step 3: Update request status
-              try {
-                console.log('Updating request status for request:', request.id);
-                const updateResponse = await apiRequest('PUT', `/api/ride-requests/${request.id}`, {
-                  status: 'offered'
-                });
-                console.log('Request status updated successfully:', updateResponse);
-              } catch (updateError) {
-                console.warn('Failed to update request status:', updateError);
-                // Continue - ride was created successfully
-              }
+              // Don't update request status yet - it should remain 'open' until someone actually joins
+              // The request will be marked as 'fulfilled' only when an invitation is accepted and someone joins
               
               // Refresh all relevant data
               queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
