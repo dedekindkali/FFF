@@ -6,7 +6,9 @@ import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 interface DashboardProps {
   onNavigate: (view: string) => void;
@@ -16,6 +18,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const processedNotificationsRef = useRef<Set<number>>(new Set());
+  const [expandedRides, setExpandedRides] = useState<Set<string>>(new Set());
   const { data: attendanceData } = useQuery({
     queryKey: ['/api/attendance'],
   });
@@ -256,7 +259,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     return null;
   };
 
-  const getAllUserRides = () => {
+  const getUserRides = () => {
     if (!currentUser) return [];
 
     const userRides: any[] = [];
@@ -264,74 +267,44 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     // Add rides user is offering (as driver)
     const offeringRides = rides.filter((ride: any) => ride.driverId === currentUser.id);
     offeringRides.forEach((ride: any) => {
-      const pendingJoinRequests = joinRequests.filter((req: any) => req.rideId === ride.id && req.status === 'pending');
+      const eventDay = ride.eventDay === 'day1' ? 'Aug 28' : ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30';
       userRides.push({
-        type: "offering",
-        role: "Driver",
-        route: `${ride.departure} → ${ride.destination}`,
-        day: ride.eventDay === 'day1' ? 'Aug 28' : ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30',
-        time: ride.departureTime,
-        seats: `${ride.availableSeats}/${ride.totalSeats} available`,
-        notes: ride.notes,
-        hasNotifications: pendingJoinRequests.length > 0,
-        notificationCount: pendingJoinRequests.length
+        id: ride.id,
+        type: "driver",
+        title: `departure ${eventDay} ${ride.departureTime}`,
+        role: "driver",
+        details: {
+          route: `${ride.departure} → ${ride.destination}`,
+          day: eventDay,
+          time: ride.departureTime,
+          seats: `${ride.availableSeats}/${ride.totalSeats} seats available`,
+          notes: ride.notes
+        },
+        hasNotifications: joinRequests.filter((req: any) => req.rideId === ride.id && req.status === 'pending').length > 0,
+        notificationCount: joinRequests.filter((req: any) => req.rideId === ride.id && req.status === 'pending').length
       });
     });
 
     // Add rides user has joined (as passenger) - accepted requests
     const acceptedJoinRequests = rideJoinStatus.filter((joinReq: any) => joinReq.status === 'accepted');
     acceptedJoinRequests.forEach((joinReq: any) => {
+      const eventDay = joinReq.ride.eventDay === 'day1' ? 'Aug 28' : joinReq.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30';
       userRides.push({
+        id: joinReq.ride.id,
         type: "passenger",
-        role: "Passenger",
-        route: `${joinReq.ride.departure} → ${joinReq.ride.destination}`,
-        day: joinReq.ride.eventDay === 'day1' ? 'Aug 28' : joinReq.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30',
-        time: joinReq.ride.departureTime,
-        driver: joinReq.ride.driver.username,
-        notes: joinReq.ride.notes
+        title: `arrival ${eventDay} ${joinReq.ride.departureTime}`,
+        role: "passenger",
+        details: {
+          route: `${joinReq.ride.departure} → ${joinReq.ride.destination}`,
+          day: eventDay,
+          time: joinReq.ride.departureTime,
+          driver: joinReq.ride.driver.username,
+          notes: joinReq.ride.notes
+        }
       });
     });
 
-    // Add pending join requests
-    const pendingJoinRequests = rideJoinStatus.filter((joinReq: any) => joinReq.status === 'pending');
-    pendingJoinRequests.forEach((joinReq: any) => {
-      userRides.push({
-        type: "pending",
-        role: "Pending Request",
-        route: `${joinReq.ride.departure} → ${joinReq.ride.destination}`,
-        day: joinReq.ride.eventDay === 'day1' ? 'Aug 28' : joinReq.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30',
-        time: joinReq.ride.departureTime,
-        driver: joinReq.ride.driver.username,
-        status: "Waiting for response"
-      });
-    });
 
-    // Add ride requests user has made
-    const userRequests = requests.filter((request: any) => request.requesterId === currentUser.id);
-    userRequests.forEach((request: any) => {
-      userRides.push({
-        type: "requesting",
-        role: "Ride Request",
-        route: `${request.departure} → ${request.destination}`,
-        day: request.eventDay === 'day1' ? 'Aug 28' : request.eventDay === 'day2' ? 'Aug 29' : 'Aug 30',
-        time: request.preferredTime,
-        status: request.status === 'offered' ? `Offered by ${request.offerer?.username || 'someone'}` : request.status,
-        notes: request.notes
-      });
-    });
-
-    // Add pending invitations
-    pendingInvitations.forEach((invitation: any) => {
-      userRides.push({
-        type: "invitation",
-        role: "Ride Invitation",
-        route: `${invitation.ride.departure} → ${invitation.ride.destination}`,
-        day: invitation.ride.eventDay === 'day1' ? 'Aug 28' : invitation.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30',
-        time: invitation.ride.departureTime,
-        driver: invitation.ride.driver.username,
-        status: "Invitation pending"
-      });
-    });
 
     return userRides;
   };
@@ -369,26 +342,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
 
-        <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="relative p-3 bg-gradient-to-br from-ff-primary/20 to-black/10 dark:from-ff-primary/30 dark:to-black/20 rounded-xl border-2 border-ff-primary/20">
-                <Car className="h-6 w-6 text-ff-primary" />
-                {rideInfo?.hasNotifications && (
-                  <div className="absolute -top-2 -right-2 bg-ff-primary text-black text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center animate-pulse">
-                    {rideInfo.notificationCount}
-                  </div>
-                )}
-              </div>
-              <div className="ml-4">
-                <p className="text-sm subtitle-font text-gray-600 dark:text-gray-400">{t('rideCoordination')}</p>
-                <p className="text-lg body-text text-gray-900 dark:text-white">
-                  {rideInfo ? rideInfo.title : t('noRideCoordination')}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
 
         <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-6">
@@ -427,48 +381,74 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         </Card>
       )}
 
-      {/* Detailed Ride Information */}
-      <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
-        <CardContent className="p-6">
-          <div className="flex items-center mb-4">
-            <Car className="h-5 w-5 text-ff-primary mr-2" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Ride Details</h3>
-          </div>
-          {(() => {
-            const allRides = getAllUserRides();
-            return allRides.length > 0 ? (
-              <div className="space-y-4">
-                {allRides.map((ride, index) => (
-                  <div key={index} className="border-l-2 border-ff-primary/30 pl-4 pb-3">
-                    <div className="flex items-center mb-2">
-                      <div className="w-2 h-2 bg-ff-primary rounded-full mr-3"></div>
-                      <span className="font-medium text-sm text-gray-900 dark:text-white">{ride.role}</span>
-                      {ride.hasNotifications && (
-                        <span className="ml-2 bg-ff-primary text-black text-xs font-bold rounded-full px-2 py-1">
-                          {ride.notificationCount}
-                        </span>
-                      )}
-                    </div>
-                    <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                      <div>{ride.route}</div>
-                      <div>{ride.day} at {ride.time}</div>
-                      {ride.driver && <div>Driver: {ride.driver}</div>}
-                      {ride.seats && <div>Seats: {ride.seats}</div>}
-                      {ride.status && <div>Status: {ride.status}</div>}
-                      {ride.notes && <div>Notes: {ride.notes}</div>}
-                    </div>
-                  </div>
-                ))}
+      {/* Simplified Ride Details */}
+      {(() => {
+        const allRides = getUserRides();
+        return allRides.length > 0 && (
+          <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
+            <CardContent className="p-6">
+              <div className="flex items-center mb-4">
+                <Car className="h-5 w-5 text-ff-primary mr-2" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Ride Details</h3>
               </div>
-            ) : (
-              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                <div className="w-2 h-2 bg-gray-400 rounded-full mr-3"></div>
-                <span>No active ride coordination</span>
+              <div className="space-y-3">
+                {allRides.map((ride: any, index: number) => {
+                  const rideKey = `${ride.id}-${ride.type}`;
+                  const isExpanded = expandedRides.has(rideKey);
+                  
+                  return (
+                    <Collapsible key={rideKey} open={isExpanded} onOpenChange={(open) => {
+                      const newExpanded = new Set(expandedRides);
+                      if (open) {
+                        newExpanded.add(rideKey);
+                      } else {
+                        newExpanded.delete(rideKey);
+                      }
+                      setExpandedRides(newExpanded);
+                    }}>
+                      <CollapsibleTrigger className="w-full">
+                        <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+                          <div className="flex items-center space-x-3">
+                            <Badge variant="outline" className={`text-xs font-medium ${
+                              ride.role === 'driver' ? 'bg-green-100 text-green-800 border-green-300' : 'bg-blue-100 text-blue-800 border-blue-300'
+                            }`}>
+                              {ride.role}
+                            </Badge>
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              {ride.title}
+                            </span>
+                            {ride.hasNotifications && (
+                              <span className="bg-ff-primary text-black text-xs font-bold rounded-full px-2 py-1">
+                                {ride.notificationCount}
+                              </span>
+                            )}
+                          </div>
+                          {isExpanded ? (
+                            <ChevronDown className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-gray-500" />
+                          )}
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="mt-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <div className="space-y-2 text-sm">
+                            <div><span className="font-medium">Route:</span> {ride.details.route}</div>
+                            <div><span className="font-medium">Time:</span> {ride.details.time}</div>
+                            {ride.details.driver && <div><span className="font-medium">Driver:</span> {ride.details.driver}</div>}
+                            {ride.details.seats && <div><span className="font-medium">Seats:</span> {ride.details.seats}</div>}
+                            {ride.details.notes && <div><span className="font-medium">Notes:</span> {ride.details.notes}</div>}
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                })}
               </div>
-            );
-          })()}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
 
 
