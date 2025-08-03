@@ -23,9 +23,9 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
   const [showModifyDialog, setShowModifyDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [eventDayFilter, setEventDayFilter] = useState("");
-  const [rideTypeFilter, setRideTypeFilter] = useState("");
-  const [availabilityFilter, setAvailabilityFilter] = useState("");
+  const [eventDayFilter, setEventDayFilter] = useState("all");
+  const [rideTypeFilter, setRideTypeFilter] = useState("all");
+  const [availabilityFilter, setAvailabilityFilter] = useState("all");
 
   const { data: ridesData } = useQuery({
     queryKey: ['/api/rides'],
@@ -178,7 +178,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
     }
     
     // Apply event day filter
-    if (eventDayFilter) {
+    if (eventDayFilter && eventDayFilter !== 'all') {
       filtered = filtered.filter((item: any) => {
         const eventDay = type === 'joinRequests' || type === 'invitations' 
           ? item.ride?.eventDay 
@@ -188,7 +188,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
     }
     
     // Apply ride type filter (for rides and requests)
-    if (rideTypeFilter && (type === 'rides' || type === 'requests')) {
+    if (rideTypeFilter && rideTypeFilter !== 'all' && (type === 'rides' || type === 'requests')) {
       if (rideTypeFilter === 'offering') {
         filtered = type === 'rides' ? filtered : [];
       } else if (rideTypeFilter === 'requesting') {
@@ -197,7 +197,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
     }
     
     // Apply availability filter (for rides)
-    if (availabilityFilter && type === 'rides') {
+    if (availabilityFilter && availabilityFilter !== 'all' && type === 'rides') {
       if (availabilityFilter === 'available') {
         filtered = filtered.filter((item: any) => item.availableSeats > 0 && item.isActive);
       } else if (availabilityFilter === 'full') {
@@ -301,7 +301,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
               <Filter className="h-4 w-4 mr-2" />
               {t('filters')}
             </Button>
-            {(searchTerm || eventDayFilter || rideTypeFilter || availabilityFilter) && (
+            {(searchTerm || (eventDayFilter && eventDayFilter !== 'all') || (rideTypeFilter && rideTypeFilter !== 'all') || (availabilityFilter && availabilityFilter !== 'all')) && (
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 {t('filtersActive')}
               </div>
@@ -317,7 +317,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
                     <SelectValue placeholder={t('allDays')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t('allDays')}</SelectItem>
+                    <SelectItem value="all">{t('allDays')}</SelectItem>
                     <SelectItem value="day1">{t('day1')}</SelectItem>
                     <SelectItem value="day2">{t('day2')}</SelectItem>
                     <SelectItem value="day3">{t('day3')}</SelectItem>
@@ -332,7 +332,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
                     <SelectValue placeholder={t('allTypes')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t('allTypes')}</SelectItem>
+                    <SelectItem value="all">{t('allTypes')}</SelectItem>
                     <SelectItem value="offering">{t('offeringRides')}</SelectItem>
                     <SelectItem value="requesting">{t('requestingRides')}</SelectItem>
                   </SelectContent>
@@ -346,7 +346,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
                     <SelectValue placeholder={t('allAvailability')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t('allAvailability')}</SelectItem>
+                    <SelectItem value="all">{t('allAvailability')}</SelectItem>
                     <SelectItem value="available">{t('availableSeats')}</SelectItem>
                     <SelectItem value="full">{t('fullRides')}</SelectItem>
                   </SelectContent>
@@ -359,9 +359,9 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
                   size="sm"
                   onClick={() => {
                     setSearchTerm("");
-                    setEventDayFilter("");
-                    setRideTypeFilter("");
-                    setAvailabilityFilter("");
+                    setEventDayFilter("all");
+                    setRideTypeFilter("all");
+                    setAvailabilityFilter("all");
                   }}
                 >
                   {t('clearFilters')}
