@@ -31,7 +31,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
     
     setTimeout(() => clearInterval(interval), 2000);
     return () => clearInterval(interval);
-  }, []);
+  });
   const [showOfferDialog, setShowOfferDialog] = useState(false);
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const [editingRide, setEditingRide] = useState<any>(null);
@@ -1266,6 +1266,7 @@ function JoinRequestCard({ request, onRespond, isResponding, onNavigate }: {
   isResponding: boolean,
   onNavigate?: (view: string, userId?: number) => void
 }) {
+  const { t } = useLanguage();
   return (
     <Card>
       <CardHeader>
@@ -1801,6 +1802,7 @@ function RideInvitationCard({ invitation, onRespond, isResponding, onNavigate }:
   isResponding: boolean;
   onNavigate?: (view: string, userId?: number) => void;
 }) {
+  const { t } = useLanguage();
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'accepted': return 'text-green-600 bg-green-100';
