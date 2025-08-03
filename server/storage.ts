@@ -1,6 +1,6 @@
 import { users, attendanceRecords, rides, rideRequests, rideJoinRequests, rideNotifications, rideInvitations, type User, type InsertUser, type AttendanceRecord, type InsertAttendance, type UpdateAttendance, type Ride, type InsertRide, type RideRequest, type InsertRideRequest, type RideJoinRequest, type InsertRideJoinRequest, type RideNotification, type InsertRideNotification, type RideInvitation, type InsertRideInvitation } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, asc, and } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -281,11 +281,31 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(rideJoinRequests.id, requestId));
 
-    // If accepted, reduce available seats
+    // If accepted, reduce available seats and mark related ride requests as fulfilled
     if (status === 'accepted') {
       const ride = joinRequest[0].rides;
+      const requesterUserId = joinRequest[0].ride_join_requests.requesterId;
+      
       if (ride.availableSeats > 0) {
         await this.updateRideSeats(ride.id, ride.availableSeats - 1);
+      }
+
+      // Find any open ride requests by this user that match this ride's route and mark them as fulfilled
+      const matchingRequests = await db
+        .select()
+        .from(rideRequests)
+        .where(
+          and(
+            eq(rideRequests.requesterId, requesterUserId),
+            eq(rideRequests.status, 'open'),
+            eq(rideRequests.eventDay, ride.eventDay),
+            eq(rideRequests.tripType, ride.tripType)
+          )
+        );
+
+      // Mark matching requests as fulfilled
+      for (const request of matchingRequests) {
+        await this.updateRideRequestStatus(request.id, 'fulfilled', ride.id);
       }
     }
   }

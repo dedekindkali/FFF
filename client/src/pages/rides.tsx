@@ -151,6 +151,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
               item.eventDay?.toLowerCase().includes(lowerSearch)
             );
           case 'requests':
+            // Filter out fulfilled requests
+            if (item.status === 'fulfilled') return false;
             return (
               item.departure?.toLowerCase().includes(lowerSearch) ||
               item.destination?.toLowerCase().includes(lowerSearch) ||
@@ -194,6 +196,11 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
       } else if (rideTypeFilter === 'requesting') {
         filtered = type === 'requests' ? filtered : [];
       }
+    }
+    
+    // Filter out fulfilled requests from requests tab
+    if (type === 'requests') {
+      filtered = filtered.filter((item: any) => item.status !== 'fulfilled');
     }
     
     // Apply availability filter (for rides)
@@ -395,7 +402,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
             <span className="block md:hidden">Requests</span>
             <span className="hidden md:block">{t('requestedRides')}</span>
             {(() => {
-              const openRequests = requests.filter((req: any) => req.status === 'open' || !req.status);
+              const openRequests = requests.filter((req: any) => req.status === 'open' || (!req.status && req.status !== 'fulfilled'));
               return openRequests.length > 0 && (
                 <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center">
                   {openRequests.length}
@@ -474,10 +481,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
                         message: `You've been invited to join this ride based on your request from ${request.departure} to ${request.destination}`
                       });
                       
-                      // Update the request status to indicate an offer was made
-                      await apiRequest('PUT', `/api/ride-requests/${requestId}`, {
-                        status: 'offered'
-                      });
+                      // Don't change request status yet - it remains 'open' until someone actually joins
+                      // The request will be marked as 'fulfilled' only when an invitation is accepted and someone joins
                       
                       queryClient.invalidateQueries({ queryKey: ['/api/ride-requests'] });
                       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
