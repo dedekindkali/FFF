@@ -218,7 +218,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const getAllUserRides = () => {
     if (!currentUser) return [];
 
-    const userRides = [];
+    const userRides: any[] = [];
 
     // Add rides user is offering (as driver)
     const offeringRides = rides.filter((ride: any) => ride.driverId === currentUser.id);
@@ -408,7 +408,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                         </span>
                       )}
                     </div>
-                    <div className="ml-5 space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                    <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                       <div>{ride.route}</div>
                       <div>{ride.day} at {ride.time}</div>
                       {ride.driver && <div>Driver: {ride.driver}</div>}

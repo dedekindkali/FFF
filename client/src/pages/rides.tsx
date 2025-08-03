@@ -785,16 +785,41 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModify
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
-            {(!currentUser || ride.driver.id !== currentUser.id) && (
-              <Button 
-                onClick={handleRequestJoin} 
-                disabled={isRequestingJoin || ride.availableSeats === 0}
-                className="flex-1"
-                size="sm"
-              >
-                {ride.availableSeats === 0 ? t('full') : t('requestToJoin')}
-              </Button>
-            )}
+            {(() => {
+              // Don't show button if user is the driver
+              if (currentUser && ride.driver.id === currentUser.id) return null;
+              
+              // Check if user is already a passenger
+              const isAlreadyPassenger = (ride as any).passengers?.some((passenger: any) => passenger.id === currentUser?.id);
+              if (isAlreadyPassenger) {
+                return (
+                  <Button disabled className="flex-1" size="sm">
+                    Already in this ride
+                  </Button>
+                );
+              }
+              
+              // Check if no seats available
+              if (ride.availableSeats === 0) {
+                return (
+                  <Button disabled className="flex-1" size="sm">
+                    {t('full')}
+                  </Button>
+                );
+              }
+              
+              // Show join button
+              return (
+                <Button 
+                  onClick={handleRequestJoin} 
+                  disabled={isRequestingJoin}
+                  className="flex-1"
+                  size="sm"
+                >
+                  {isRequestingJoin ? t('requesting') : t('requestToJoin')}
+                </Button>
+              );
+            })()}
           </div>
         </CardContent>
       </Card>
