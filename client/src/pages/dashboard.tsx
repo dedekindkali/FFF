@@ -306,7 +306,20 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
 
 
-    return userRides;
+    // Sort rides chronologically by departure time
+    return userRides.sort((a, b) => {
+      const timeA = a.details.time;
+      const timeB = b.details.time;
+      
+      // Convert time strings to comparable format (assuming HH:MM format)
+      const [hoursA, minutesA] = timeA.split(':').map(Number);
+      const [hoursB, minutesB] = timeB.split(':').map(Number);
+      
+      const totalMinutesA = hoursA * 60 + minutesA;
+      const totalMinutesB = hoursB * 60 + minutesB;
+      
+      return totalMinutesA - totalMinutesB;
+    });
   };
 
   const getDietaryStatus = () => {

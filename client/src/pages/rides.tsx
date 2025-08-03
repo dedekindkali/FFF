@@ -1201,9 +1201,9 @@ function CreateRideForRequestDialog({ request, onSubmit, isLoading }: {
           <Label htmlFor="departureTime">{t('time')}</Label>
           <Input
             id="departureTime"
+            type="time"
             value={formData.departureTime}
             onChange={(e) => setFormData(prev => ({ ...prev, departureTime: e.target.value }))}
-            placeholder="e.g., 9:00 AM"
             required
           />
         </div>
@@ -1474,9 +1474,9 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide 
           <Label htmlFor="departureTime">{t('time')}</Label>
           <Input
             id="departureTime"
+            type="time"
             value={formData.departureTime}
             onChange={(e) => setFormData(prev => ({ ...prev, departureTime: e.target.value }))}
-            placeholder="e.g., 9:00 AM"
             required
           />
         </div>
@@ -1683,9 +1683,9 @@ function RequestRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRid
           <Label htmlFor="preferredTime">{t('time')}</Label>
           <Input
             id="preferredTime"
+            type="time"
             value={formData.preferredTime}
             onChange={(e) => setFormData(prev => ({ ...prev, preferredTime: e.target.value }))}
-            placeholder="e.g., 9:00 AM"
           />
         </div>
         
