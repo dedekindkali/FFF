@@ -243,17 +243,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         <p className="mt-1 text-sm body-text text-gray-600 dark:text-gray-400">{t('eventDates')} • Gestisci la tua partecipazione e preferenze</p>
       </div>
 
-      {/* Notifications Section - Simple Dotted Style */}
-      {unreadNotifications.length > 0 && (
-        <div className="bg-ff-primary/10 border border-ff-primary/20 rounded-lg p-4 mb-8">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-ff-primary rounded-full animate-pulse" />
-            <h3 className="subtitle-font text-ff-primary">
-              {t('notifications')} ({unreadNotifications.length})
-            </h3>
-          </div>
-        </div>
-      )}
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
@@ -301,13 +291,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         <Card className="card-elevated bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
           <CardContent className="p-6">
             <div className="flex items-center mb-4">
-              <CalendarPlus className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
+              <CalendarPlus className="h-5 w-5 text-ff-primary mr-2" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('attendanceDetails')}</h3>
             </div>
             <div className="space-y-2">
               {attendancePeriods.map((period, index) => (
                 <div key={index} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  <div className="w-2 h-2 bg-ff-primary rounded-full mr-3"></div>
                   <span className="capitalize">{period}</span>
                 </div>
               ))}
