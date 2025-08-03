@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Car, Plus, MapPin, Clock, Users, MessageSquare, Calendar, User, Edit, Bell, ChevronDown, Trash2 } from "lucide-react";
+import { Car, Plus, MapPin, Clock, Users, MessageSquare, Calendar, User, Edit, Bell, ChevronDown, Trash2, Search, X } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +20,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const [editingRide, setEditingRide] = useState<any>(null);
   const [showModifyDialog, setShowModifyDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   const { data: ridesData } = useQuery({
     queryKey: ['/api/rides'],
@@ -126,6 +128,49 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
   const userJoinRequests = (userJoinStatusData as any)?.joinRequests || [];
   const rideInvitations = (rideInvitationsData as any)?.invitations || [];
 
+  // Filter functions
+  const filterItems = (items: any[], type: 'rides' | 'requests' | 'joinRequests' | 'invitations') => {
+    if (!searchTerm) return items;
+    
+    const lowerSearch = searchTerm.toLowerCase();
+    
+    return items.filter((item: any) => {
+      switch (type) {
+        case 'rides':
+          return (
+            item.departure?.toLowerCase().includes(lowerSearch) ||
+            item.destination?.toLowerCase().includes(lowerSearch) ||
+            item.driver?.username?.toLowerCase().includes(lowerSearch) ||
+            item.notes?.toLowerCase().includes(lowerSearch) ||
+            item.eventDay?.toLowerCase().includes(lowerSearch)
+          );
+        case 'requests':
+          return (
+            item.departure?.toLowerCase().includes(lowerSearch) ||
+            item.destination?.toLowerCase().includes(lowerSearch) ||
+            item.requester?.username?.toLowerCase().includes(lowerSearch) ||
+            item.notes?.toLowerCase().includes(lowerSearch) ||
+            item.eventDay?.toLowerCase().includes(lowerSearch)
+          );
+        case 'joinRequests':
+          return (
+            item.ride?.departure?.toLowerCase().includes(lowerSearch) ||
+            item.ride?.destination?.toLowerCase().includes(lowerSearch) ||
+            item.requester?.username?.toLowerCase().includes(lowerSearch) ||
+            item.message?.toLowerCase().includes(lowerSearch)
+          );
+        case 'invitations':
+          return (
+            item.ride?.departure?.toLowerCase().includes(lowerSearch) ||
+            item.ride?.destination?.toLowerCase().includes(lowerSearch) ||
+            item.inviter?.username?.toLowerCase().includes(lowerSearch)
+          );
+        default:
+          return true;
+      }
+    });
+  };
+
   const respondToJoinRequestMutation = useMutation({
     mutationFn: ({ requestId, status }: { requestId: number; status: string }) => 
       apiRequest('POST', `/api/rides/join-requests/${requestId}/respond`, { status }),
@@ -187,6 +232,38 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
         </div>
       </div>
 
+      {/* Search and Filter Section */}
+      <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <CardContent className="p-4">
+          <div className="flex items-center space-x-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder={t('searchRides')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-10"
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+                  onClick={() => setSearchTerm("")}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            {searchTerm && (
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {t('searchActive')}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="available" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="available" className="relative">
@@ -245,7 +322,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
         
         <TabsContent value="available" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {rides.map((ride: Ride & { driver: any }) => (
+            {filterItems(rides, 'rides').map((ride: Ride & { driver: any }) => (
               <RideCard 
                 key={ride.id} 
                 ride={ride} 
@@ -264,7 +341,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
         
         <TabsContent value="requests" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {requests.map((request: RideRequest & { requester: any }) => (
+            {filterItems(requests, 'requests').map((request: RideRequest & { requester: any }) => (
               <RequestCard 
                 key={request.id} 
                 request={request}
@@ -309,7 +386,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
 
         <TabsContent value="join-requests" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {joinRequests.map((request: any) => (
+            {filterItems(joinRequests, 'joinRequests').map((request: any) => (
               <JoinRequestCard 
                 key={request.id} 
                 request={request} 
@@ -323,7 +400,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
 
         <TabsContent value="invitations" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {rideInvitations.map((invitation: any) => (
+            {filterItems(rideInvitations, 'invitations').map((invitation: any) => (
               <RideInvitationCard 
                 key={invitation.id} 
                 invitation={invitation} 
@@ -337,7 +414,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
 
         <TabsContent value="my-requests" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {userJoinRequests.map((request: any) => (
+            {filterItems(userJoinRequests, 'joinRequests').map((request: any) => (
               <UserJoinRequestCard 
                 key={request.id} 
                 request={request} 
