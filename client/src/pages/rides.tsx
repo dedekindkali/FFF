@@ -17,6 +17,21 @@ import type { Ride, RideRequest, InsertRide, InsertRideRequest } from "@shared/s
 export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: number) => void }) {
   const { t } = useLanguage();
   const { toast } = useToast();
+  
+  // Force 24-hour format for all time inputs
+  useState(() => {
+    const interval = setInterval(() => {
+      const timeInputs = document.querySelectorAll('input[type="time"]');
+      timeInputs.forEach((input: any) => {
+        input.setAttribute('step', '60');
+        input.setAttribute('lang', 'en-GB');
+        input.style.setProperty('--webkit-datetime-edit-ampm-field', 'none');
+      });
+    }, 100);
+    
+    setTimeout(() => clearInterval(interval), 2000);
+    return () => clearInterval(interval);
+  }, []);
   const [showOfferDialog, setShowOfferDialog] = useState(false);
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const [editingRide, setEditingRide] = useState<any>(null);
@@ -657,7 +672,9 @@ function ModifyRideDialog({ ride, onSubmit, isLoading }: {
           value={departureTime}
           onChange={(e) => setDepartureTime(e.target.value)}
           required
-          className="[&::-webkit-datetime-edit-ampm-field]:hidden"
+          data-format="24"
+          lang="en-GB"
+          className="[&::-webkit-datetime-edit-ampm-field]:!hidden"
         />
       </div>
       
@@ -1481,7 +1498,9 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide 
             value={formData.departureTime}
             onChange={(e) => setFormData(prev => ({ ...prev, departureTime: e.target.value }))}
             required
-            className="[&::-webkit-datetime-edit-ampm-field]:hidden"
+            data-format="24"
+            lang="en-GB"
+            className="[&::-webkit-datetime-edit-ampm-field]:!hidden"
           />
         </div>
         
@@ -1691,7 +1710,9 @@ function RequestRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRid
             step="60"
             value={formData.preferredTime}
             onChange={(e) => setFormData(prev => ({ ...prev, preferredTime: e.target.value }))}
-            className="[&::-webkit-datetime-edit-ampm-field]:hidden"
+            data-format="24"
+            lang="en-GB"
+            className="[&::-webkit-datetime-edit-ampm-field]:!hidden"
           />
         </div>
         
