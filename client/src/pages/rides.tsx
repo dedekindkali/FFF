@@ -191,27 +191,36 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="available" className="relative">
             {t('availableRides')}
-            {rides.length > 0 && (
-              <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {rides.length}
-              </div>
-            )}
+            {(() => {
+              const availableRides = rides.filter((ride: any) => ride.availableSeats > 0 && ride.isActive);
+              return availableRides.length > 0 && (
+                <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {availableRides.length}
+                </div>
+              );
+            })()}
           </TabsTrigger>
           <TabsTrigger value="requests" className="relative">
             {t('requestedRides')}
-            {requests.length > 0 && (
-              <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {requests.length}
-              </div>
-            )}
+            {(() => {
+              const openRequests = requests.filter((req: any) => req.status === 'open' || !req.status);
+              return openRequests.length > 0 && (
+                <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {openRequests.length}
+                </div>
+              );
+            })()}
           </TabsTrigger>
           <TabsTrigger value="join-requests" className="relative">
             {t('joinRequests')}
-            {joinRequests.length > 0 && (
-              <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {joinRequests.length}
-              </div>
-            )}
+            {(() => {
+              const pendingJoinRequests = joinRequests.filter((req: any) => req.status === 'pending');
+              return pendingJoinRequests.length > 0 && (
+                <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingJoinRequests.length}
+                </div>
+              );
+            })()}
           </TabsTrigger>
           <TabsTrigger value="invitations" className="relative">
             Ride Invitations
@@ -223,11 +232,14 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
           </TabsTrigger>
           <TabsTrigger value="my-requests" className="relative">
             {t('myRequests')}
-            {userJoinRequests.length > 0 && (
-              <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {userJoinRequests.length}
-              </div>
-            )}
+            {(() => {
+              const pendingUserRequests = userJoinRequests.filter((req: any) => req.status === 'pending');
+              return pendingUserRequests.length > 0 && (
+                <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingUserRequests.length}
+                </div>
+              );
+            })()}
           </TabsTrigger>
         </TabsList>
         
