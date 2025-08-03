@@ -466,7 +466,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
         
         <TabsContent value="requests" className="space-y-3 md:space-y-4">
           <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {filterItems(requests, 'requests').map((request: RideRequest & { requester: any }) => (
+            {filterItems(requests, 'requests').map((request: RideRequest & { requester: any; offerer?: any }) => (
               <RequestCard 
                 key={request.id} 
                 request={request}
@@ -478,11 +478,9 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
                     try {
                       await apiRequest('POST', `/api/rides/${selectedRideId}/invite`, {
                         userId: request.requesterId,
+                        requestId: request.id, // Include the request ID
                         message: `You've been invited to join this ride based on your request from ${request.departure} to ${request.destination}`
                       });
-                      
-                      // Don't change request status yet - it remains 'open' until someone actually joins
-                      // The request will be marked as 'fulfilled' only when an invitation is accepted and someone joins
                       
                       queryClient.invalidateQueries({ queryKey: ['/api/ride-requests'] });
                       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
@@ -844,7 +842,7 @@ function RideCard({ ride, onRequestJoin, isRequestingJoin, currentUser, onModify
 }
 
 function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate }: { 
-  request: RideRequest & { requester: any },
+  request: RideRequest & { requester: any; offerer?: any },
   currentUser: any,
   userRides?: any[],
   onOfferRide?: (requestId: number, selectedRideId?: number) => void,
@@ -909,8 +907,13 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
               Status: <span className={`font-medium ${
                 request.status === 'accepted' ? 'text-green-600' : 
                 request.status === 'declined' ? 'text-red-600' : 
+                request.status === 'offered' ? 'text-blue-600' :
                 'text-yellow-600'
-              }`}>{request.status}</span>
+              }`}>
+                {request.status === 'offered' && request.offerer 
+                  ? `offered by ${request.offerer.username}` 
+                  : request.status}
+              </span>
             </div>
             
             <div className="flex space-x-2">
@@ -924,7 +927,7 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
                   {t('offerRide')}
                 </Button>
               )}
-              {currentUser && request.requesterId === currentUser.id && (
+              {currentUser && request.requesterId === currentUser.id && request.status !== 'offered' && (
                 <Button
                   variant="destructive"
                   onClick={async () => {
@@ -1052,6 +1055,7 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
                 console.log('Sending invitation to user:', request.requesterId);
                 const inviteResponse = await apiRequest('POST', `/api/rides/${createdRide.id}/invite`, {
                   userId: request.requesterId,
+                  requestId: request.id, // Include the request ID
                   message: `You've been invited to join this ride that matches your request from ${request.departure} to ${request.destination}`
                 });
                 console.log('Invitation sent successfully:', inviteResponse);

@@ -569,7 +569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const rideId = parseInt(req.params.rideId);
-      const { userId: invitedUserId, message } = req.body;
+      const { userId: invitedUserId, requestId, message } = req.body;
 
       const ride = await storage.getRide(rideId);
       if (!ride || ride.driverId !== userId) {
@@ -582,6 +582,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         inviterId: userId,
         inviteeId: invitedUserId,
       });
+
+      // Update the ride request status to "offered" if this is based on a request
+      if (requestId) {
+        await storage.updateRideRequestStatus(requestId, "offered", rideId, userId);
+      }
 
       // Create notification for the invited user (passenger)
       const driver = await storage.getUserById(userId);

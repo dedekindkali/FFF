@@ -70,7 +70,8 @@ export const rideRequests = pgTable("ride_requests", {
   eventDay: varchar("event_day", { length: 20 }).notNull(), // 'day1', 'day2', 'day3'
   preferredTime: varchar("preferred_time", { length: 50 }),
   notes: text("notes"),
-  status: varchar("status", { length: 20 }).default("open").notNull(), // 'open', 'fulfilled'
+  status: varchar("status", { length: 20 }).default("open").notNull(), // 'open', 'offered', 'fulfilled'
+  offeredBy: integer("offered_by").references(() => users.id), // Who offered the ride
   createdAt: timestamp("created_at").default(sql`NOW()`).notNull(),
 });
 

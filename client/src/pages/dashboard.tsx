@@ -243,21 +243,14 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         <p className="mt-1 text-sm body-text text-gray-600 dark:text-gray-400">{t('eventDates')} • Gestisci la tua partecipazione e preferenze</p>
       </div>
 
-      {/* Notifications Section */}
+      {/* Notifications Section - Simple Dotted Style */}
       {unreadNotifications.length > 0 && (
         <div className="bg-ff-primary/10 border border-ff-primary/20 rounded-lg p-4 mb-8">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-ff-primary rounded-full animate-pulse" />
             <h3 className="subtitle-font text-ff-primary">
               {t('notifications')} ({unreadNotifications.length})
             </h3>
-          </div>
-          <div className="space-y-2 max-h-32 overflow-y-auto">
-            {unreadNotifications.slice(0, 3).map((notification: any) => (
-              <div key={notification.id} className="text-sm body-text text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-800/50 p-2 rounded">
-                {notification.message}
-              </div>
-            ))}
           </div>
         </div>
       )}

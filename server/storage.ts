@@ -1,6 +1,6 @@
 import { users, attendanceRecords, rides, rideRequests, rideJoinRequests, rideNotifications, rideInvitations, type User, type InsertUser, type AttendanceRecord, type InsertAttendance, type UpdateAttendance, type Ride, type InsertRide, type RideRequest, type InsertRideRequest, type RideJoinRequest, type InsertRideJoinRequest, type RideNotification, type InsertRideNotification, type RideInvitation, type InsertRideInvitation } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and } from "drizzle-orm";
+import { eq, desc, asc, and, or } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -28,7 +28,7 @@ export interface IStorage {
   getAllRideRequests(): Promise<Array<RideRequest & { requester: User }>>;
   getRideRequestsByUserId(userId: number): Promise<RideRequest[]>;
   getRideRequest(requestId: number): Promise<RideRequest | undefined>;
-  updateRideRequestStatus(requestId: number, status: string, rideId?: number): Promise<void>;
+  updateRideRequestStatus(requestId: number, status: string, rideId?: number, offeredBy?: number): Promise<void>;
   
   // Ride join request methods
   createRideJoinRequest(request: InsertRideJoinRequest): Promise<RideJoinRequest>;
@@ -202,17 +202,34 @@ export class DatabaseStorage implements IStorage {
     return newRequest;
   }
 
-  async getAllRideRequests(): Promise<Array<RideRequest & { requester: User }>> {
+  async getAllRideRequests(): Promise<Array<RideRequest & { requester: User; offerer?: User }>> {
     const result = await db
       .select()
       .from(rideRequests)
       .innerJoin(users, eq(rideRequests.requesterId, users.id))
       .orderBy(desc(rideRequests.createdAt));
 
-    return result.map(row => ({
-      ...row.ride_requests,
-      requester: row.users,
-    }));
+    // Get the offerer information separately to avoid complex joins
+    const requestsWithOfferers = await Promise.all(
+      result.map(async (row) => {
+        let offerer = undefined;
+        if (row.ride_requests.offeredBy) {
+          const [offererResult] = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, row.ride_requests.offeredBy));
+          offerer = offererResult;
+        }
+
+        return {
+          ...row.ride_requests,
+          requester: row.users,
+          offerer,
+        };
+      })
+    );
+
+    return requestsWithOfferers;
   }
 
   async getRideRequestsByUserId(userId: number): Promise<RideRequest[]> {
@@ -223,10 +240,13 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(rideRequests.createdAt));
   }
 
-  async updateRideRequestStatus(requestId: number, status: string, rideId?: number): Promise<void> {
+  async updateRideRequestStatus(requestId: number, status: string, rideId?: number, offeredBy?: number): Promise<void> {
     const updateData: any = { status };
     if (rideId) {
       updateData.rideId = rideId;
+    }
+    if (offeredBy) {
+      updateData.offeredBy = offeredBy;
     }
     
     await db
@@ -290,14 +310,18 @@ export class DatabaseStorage implements IStorage {
         await this.updateRideSeats(ride.id, ride.availableSeats - 1);
       }
 
-      // Find any open ride requests by this user that match this ride's route and mark them as fulfilled
+      // Find any open or offered ride requests by this user that match this ride's route and mark them as fulfilled
       const matchingRequests = await db
         .select()
         .from(rideRequests)
         .where(
           and(
             eq(rideRequests.requesterId, requesterUserId),
-            eq(rideRequests.status, 'open'),
+            // Include both 'open' and 'offered' status requests that can be fulfilled
+            or(
+              eq(rideRequests.status, 'open'),
+              eq(rideRequests.status, 'offered')
+            ),
             eq(rideRequests.eventDay, ride.eventDay),
             eq(rideRequests.tripType, ride.tripType)
           )
