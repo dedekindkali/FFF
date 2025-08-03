@@ -189,9 +189,30 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
 
       <Tabs defaultValue="available" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="available">{t('availableRides')}</TabsTrigger>
-          <TabsTrigger value="requests">{t('requestedRides')}</TabsTrigger>
-          <TabsTrigger value="join-requests">{t('joinRequests')}</TabsTrigger>
+          <TabsTrigger value="available" className="relative">
+            {t('availableRides')}
+            {rides.length > 0 && (
+              <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {rides.length}
+              </div>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="requests" className="relative">
+            {t('requestedRides')}
+            {requests.length > 0 && (
+              <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {requests.length}
+              </div>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="join-requests" className="relative">
+            {t('joinRequests')}
+            {joinRequests.length > 0 && (
+              <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {joinRequests.length}
+              </div>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="invitations" className="relative">
             Ride Invitations
             {rideInvitations.filter((inv: any) => inv.status === 'pending').length > 0 && (
@@ -200,7 +221,14 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
               </div>
             )}
           </TabsTrigger>
-          <TabsTrigger value="my-requests">{t('myRequests')}</TabsTrigger>
+          <TabsTrigger value="my-requests" className="relative">
+            {t('myRequests')}
+            {userJoinRequests.length > 0 && (
+              <div className="absolute -top-1 -right-1 bg-ff-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {userJoinRequests.length}
+              </div>
+            )}
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="available" className="space-y-4">
