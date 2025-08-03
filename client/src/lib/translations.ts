@@ -254,7 +254,7 @@ export const translations = {
     
     // Participants
     participantsTitle: "Partecipanti all'Evento", 
-    participantsSubtitle: "Visualizza tutti i partecipanti registrati",
+    participantsSubtitle: "Visualizza tuttɜ lɜ partecipanti registratɜ",
     contactInformation: "Informazioni di Contatto",
     noContactInfo: "Nessuna informazione di contatto fornita",
     attendanceStatus: "Stato Partecipazione",
