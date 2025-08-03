@@ -203,6 +203,7 @@ export const translations = {
     rideAccepted: "Passaggio Accettato da",
     driver: "Autista",
     passenger: "Passeggerə",
+    passengers: "Passeggerɜ",
     route: "Percorso",
     day: "Giorno",
     time: "Orario",
