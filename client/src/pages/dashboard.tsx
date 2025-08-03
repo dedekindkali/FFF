@@ -106,19 +106,19 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     // Create a chronological list of all events the user is attending
     const events = [];
     
-    if (attendance.day1Breakfast) events.push({ day: 1, event: 'breakfast', label: 'breakfast Aug 28' });
-    if (attendance.day1Lunch) events.push({ day: 1, event: 'lunch', label: 'lunch Aug 28' });
-    if (attendance.day1Dinner) events.push({ day: 1, event: 'dinner', label: 'dinner Aug 28' });
-    if (attendance.day1Night) events.push({ day: 1, event: 'overnight', label: 'overnight Aug 28-29' });
+    if (attendance.day1Breakfast) events.push({ day: 1, event: 'breakfast', label: `${t('breakfast')} 28 Ago` });
+    if (attendance.day1Lunch) events.push({ day: 1, event: 'lunch', label: `${t('lunch')} 28 Ago` });
+    if (attendance.day1Dinner) events.push({ day: 1, event: 'dinner', label: `${t('dinner')} 28 Ago` });
+    if (attendance.day1Night) events.push({ day: 1, event: 'overnight', label: `${t('overnight')} 28-29 Ago` });
     
-    if (attendance.day2Breakfast) events.push({ day: 2, event: 'breakfast', label: 'breakfast Aug 29' });
-    if (attendance.day2Lunch) events.push({ day: 2, event: 'lunch', label: 'lunch Aug 29' });
-    if (attendance.day2Dinner) events.push({ day: 2, event: 'dinner', label: 'dinner Aug 29' });
-    if (attendance.day2Night) events.push({ day: 2, event: 'overnight', label: 'overnight Aug 29-30' });
+    if (attendance.day2Breakfast) events.push({ day: 2, event: 'breakfast', label: `${t('breakfast')} 29 Ago` });
+    if (attendance.day2Lunch) events.push({ day: 2, event: 'lunch', label: `${t('lunch')} 29 Ago` });
+    if (attendance.day2Dinner) events.push({ day: 2, event: 'dinner', label: `${t('dinner')} 29 Ago` });
+    if (attendance.day2Night) events.push({ day: 2, event: 'overnight', label: `${t('overnight')} 29-30 Ago` });
     
-    if (attendance.day3Breakfast) events.push({ day: 3, event: 'breakfast', label: 'breakfast Aug 30' });
-    if (attendance.day3Lunch) events.push({ day: 3, event: 'lunch', label: 'lunch Aug 30' });
-    if (attendance.day3Dinner) events.push({ day: 3, event: 'dinner', label: 'dinner Aug 30' });
+    if (attendance.day3Breakfast) events.push({ day: 3, event: 'breakfast', label: `${t('breakfast')} 30 Ago` });
+    if (attendance.day3Lunch) events.push({ day: 3, event: 'lunch', label: `${t('lunch')} 30 Ago` });
+    if (attendance.day3Dinner) events.push({ day: 3, event: 'dinner', label: `${t('dinner')} 30 Ago` });
     
     if (events.length === 0) return [];
     
