@@ -60,8 +60,8 @@ export function Admin({ onLogout }: AdminProps) {
     // Open the export endpoint in a new window to trigger download
     window.open(`/api/admin/export/${type}`, '_blank');
     toast({
-      title: `${type.charAt(0).toUpperCase() + type.slice(1)} export started`,
-      description: "Your download should begin shortly.",
+      title: `${type.charAt(0).toUpperCase() + type.slice(1)} ${t('exportStarted')}`,
+      description: t('downloadWillBegin'),
     });
   };
 

@@ -44,8 +44,8 @@ export function Login({ onLogin, onSignUp, onAdminLogin }: LoginProps) {
         });
       } else {
         toast({
-          title: "Login failed",
-          description: "Please check your username and try again.",
+          title: t('loginFailed'),
+          description: t('checkUsername'),
           variant: "destructive",
         });
       }
@@ -70,8 +70,8 @@ export function Login({ onLogin, onSignUp, onAdminLogin }: LoginProps) {
         });
       } else {
         toast({
-          title: "Sign-up failed",
-          description: "Please try again.",
+          title: t('signupFailed'),
+          description: t('tryAgain'),
           variant: "destructive",
         });
       }
@@ -86,22 +86,22 @@ export function Login({ onLogin, onSignUp, onAdminLogin }: LoginProps) {
     },
     onSuccess: () => {
       toast({
-        title: "Admin access granted",
-        description: "Redirecting to admin panel...",
+        title: t('adminAccessGranted'),
+        description: t('redirectingToAdmin'),
       });
       onAdminLogin();
     },
     onError: (error: any) => {
       if (error?.message?.includes('Invalid admin password')) {
         toast({
-          title: "Invalid admin password",
-          description: "Please check your admin password and try again.",
+          title: t('invalidAdminPassword'),
+          description: t('checkAdminPassword'),
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Admin login failed",
-          description: "Please try again.",
+          title: t('adminLoginFailed'),
+          description: t('tryAgain'),
           variant: "destructive",
         });
       }

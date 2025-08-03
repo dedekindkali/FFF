@@ -86,8 +86,8 @@ export function Attendance({ onNavigate }: { onNavigate?: (view: string) => void
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to save attendance preferences.",
+        title: t('error'),
+        description: t('failedToSaveAttendance'),
         variant: "destructive",
       });
     },

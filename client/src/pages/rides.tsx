@@ -90,10 +90,10 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       setShowOfferDialog(false);
       toast({
-        title: "Success",
+        title: t('success'),
         description: result.invitationsSent > 0 
-          ? `Ride created successfully! ${result.invitationsSent} invitation${result.invitationsSent > 1 ? 's' : ''} sent.`
-          : "Ride offer created successfully!",
+          ? `${t('rideCreatedSuccess')} ${result.invitationsSent} ${result.invitationsSent > 1 ? t('invitationsSent') : t('invitationSent')}.`
+          : t('rideCreatedSuccess'),
       });
     },
   });
@@ -104,8 +104,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
       queryClient.invalidateQueries({ queryKey: ['/api/ride-requests'] });
       setShowRequestDialog(false);
       toast({
-        title: "Success",
-        description: "Ride request created successfully!",
+        title: t('success'),
+        description: t('rideRequestCreatedSuccess'),
       });
     },
   });
@@ -118,8 +118,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
       setShowModifyDialog(false);
       setEditingRide(null);
       toast({
-        title: "Success",
-        description: "Ride updated successfully! Passengers have been notified.",
+        title: t('success'),
+        description: t('rideUpdatedSuccess'),
       });
     },
   });
@@ -129,8 +129,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
       toast({
-        title: "Success",
-        description: "Ride deleted successfully!",
+        title: t('success'),
+        description: t('rideDeletedSuccess'),
       });
     },
   });
@@ -140,8 +140,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ride-requests'] });
       toast({
-        title: "Success", 
-        description: "Ride request deleted successfully!",
+        title: t('success'), 
+        description: t('rideRequestDeletedSuccess'),
       });
     },
   });
@@ -153,8 +153,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
       queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
       queryClient.invalidateQueries({ queryKey: ['/api/ride-join-status'] });
       toast({
-        title: "Success",
-        description: "Join request sent successfully!",
+        title: t('success'),
+        description: t('joinRequestSentSuccess'),
       });
     },
   });
@@ -266,8 +266,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
       queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
       queryClient.invalidateQueries({ queryKey: ['/api/ride-join-status'] });
       toast({
-        title: "Success",
-        description: "Response sent successfully!",
+        title: t('success'),
+        description: t('responseSentSuccess'),
       });
     },
   });
@@ -280,8 +280,8 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
       queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
       queryClient.invalidateQueries({ queryKey: ['/api/ride-join-status'] });
       toast({
-        title: "Success",
-        description: "Response sent successfully!",
+        title: t('success'),
+        description: t('responseSentSuccess'),
       });
     },
   });
@@ -531,13 +531,13 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
                       
                       toast({
                         title: "Success",
-                        description: `Ride offer sent to ${request.requester.username}!`
+                        description: `${t('rideOfferSentTo')} ${request.requester.username}!`
                       });
                     } catch (error) {
                       console.error('Error sending ride offer:', error);
                       toast({
-                        title: "Error",
-                        description: "Failed to send ride offer. Please try again."
+                        title: t('error'),
+                        description: t('failedToSendRideOffer'),
                       });
                     }
                   }
@@ -1147,8 +1147,8 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
               
               setShowCreateRideDialog(false);
               toast({
-                title: "Success",
-                description: `New ride created successfully! ${createdRide.departure} → ${createdRide.destination}`
+                title: t('success'),
+                description: `${t('newRideCreatedSuccess')} ${createdRide.departure} → ${createdRide.destination}`
               });
               
             } catch (error) {
@@ -1156,8 +1156,8 @@ function RequestCard({ request, currentUser, userRides, onOfferRide, onNavigate 
               
               setShowCreateRideDialog(false);
               toast({
-                title: "Error",
-                description: "Failed to create ride. Please try again.",
+                title: t('error'),
+                description: t('failedToCreateRide'),
                 variant: "destructive"
               });
             }
@@ -1199,19 +1199,19 @@ function CreateRideForRequestDialog({ request, onSubmit, isLoading }: {
   return (
     <DialogContent className="sm:max-w-md scrollable-popup">
       <DialogHeader>
-        <DialogTitle>Create Ride for {request.requester.username}</DialogTitle>
+        <DialogTitle>{t('createRideFor')} {request.requester.username}</DialogTitle>
         <DialogDescription>
-          Create a new ride that matches this user's request
+          {t('createRideMatching')}
         </DialogDescription>
       </DialogHeader>
       
       <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <p className="text-sm font-secondary-title mb-2">Matching Request:</p>
+        <p className="text-sm font-secondary-title mb-2">{t('matchingRequest')}</p>
         <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-          <p><strong>Route:</strong> {request.departure} → {request.destination}</p>
-          <p><strong>Type:</strong> {request.tripType === 'arrival' ? 'Arrival' : 'Departure'}</p>
-          <p><strong>Day:</strong> {request.eventDay === 'day1' ? 'Aug 28' : request.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'}</p>
-          {request.preferredTime && <p><strong>Preferred Time:</strong> {request.preferredTime}</p>}
+          <p><strong>{t('route')}:</strong> {request.departure} → {request.destination}</p>
+          <p><strong>{t('tripType')}:</strong> {request.tripType === 'arrival' ? t('arrival') : t('departure')}</p>
+          <p><strong>{t('eventDay')}:</strong> {request.eventDay === 'day1' ? '28 Ago' : request.eventDay === 'day2' ? '29 Ago' : '30 Ago'}</p>
+          {request.preferredTime && <p><strong>{t('time')}:</strong> {request.preferredTime}</p>}
         </div>
       </div>
 
@@ -1277,15 +1277,15 @@ function JoinRequestCard({ request, onRespond, isResponding, onNavigate }: {
             >
               {request.requester.username}
             </button>
-            <span className="text-sm text-gray-500">wants to join</span>
+            <span className="text-sm text-gray-500">{t('wantsToJoin')}</span>
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          <p><strong>Ride:</strong> {request.ride.departure} → {request.ride.destination}</p>
-          <p><strong>Time:</strong> {request.ride.departureTime}</p>
-          <p><strong>Trip Type:</strong> {request.ride.tripType === 'arrival' ? 'Arrival' : 'Departure'}</p>
+          <p><strong>{t('ride')}:</strong> {request.ride.departure} → {request.ride.destination}</p>
+          <p><strong>{t('time')}:</strong> {request.ride.departureTime}</p>
+          <p><strong>{t('tripType')}:</strong> {request.ride.tripType === 'arrival' ? t('arrival') : t('departure')}</p>
         </div>
         
         {request.message && (
@@ -1872,7 +1872,7 @@ function RideInvitationCard({ invitation, onRespond, isResponding, onNavigate }:
               className="w-full"
               size="sm"
             >
-              Decline
+              {t('decline')}
             </Button>
           </div>
         )}
