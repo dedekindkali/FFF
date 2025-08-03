@@ -215,6 +215,86 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     return null;
   };
 
+  const getAllUserRides = () => {
+    if (!currentUser) return [];
+
+    const userRides = [];
+
+    // Add rides user is offering (as driver)
+    const offeringRides = rides.filter((ride: any) => ride.driverId === currentUser.id);
+    offeringRides.forEach((ride: any) => {
+      const pendingJoinRequests = joinRequests.filter((req: any) => req.rideId === ride.id && req.status === 'pending');
+      userRides.push({
+        type: "offering",
+        role: "Driver",
+        route: `${ride.departure} → ${ride.destination}`,
+        day: ride.eventDay === 'day1' ? 'Aug 28' : ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30',
+        time: ride.departureTime,
+        seats: `${ride.availableSeats}/${ride.totalSeats} available`,
+        notes: ride.notes,
+        hasNotifications: pendingJoinRequests.length > 0,
+        notificationCount: pendingJoinRequests.length
+      });
+    });
+
+    // Add rides user has joined (as passenger) - accepted requests
+    const acceptedJoinRequests = rideJoinStatus.filter((joinReq: any) => joinReq.status === 'accepted');
+    acceptedJoinRequests.forEach((joinReq: any) => {
+      userRides.push({
+        type: "passenger",
+        role: "Passenger",
+        route: `${joinReq.ride.departure} → ${joinReq.ride.destination}`,
+        day: joinReq.ride.eventDay === 'day1' ? 'Aug 28' : joinReq.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30',
+        time: joinReq.ride.departureTime,
+        driver: joinReq.ride.driver.username,
+        notes: joinReq.ride.notes
+      });
+    });
+
+    // Add pending join requests
+    const pendingJoinRequests = rideJoinStatus.filter((joinReq: any) => joinReq.status === 'pending');
+    pendingJoinRequests.forEach((joinReq: any) => {
+      userRides.push({
+        type: "pending",
+        role: "Pending Request",
+        route: `${joinReq.ride.departure} → ${joinReq.ride.destination}`,
+        day: joinReq.ride.eventDay === 'day1' ? 'Aug 28' : joinReq.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30',
+        time: joinReq.ride.departureTime,
+        driver: joinReq.ride.driver.username,
+        status: "Waiting for response"
+      });
+    });
+
+    // Add ride requests user has made
+    const userRequests = requests.filter((request: any) => request.requesterId === currentUser.id);
+    userRequests.forEach((request: any) => {
+      userRides.push({
+        type: "requesting",
+        role: "Ride Request",
+        route: `${request.departure} → ${request.destination}`,
+        day: request.eventDay === 'day1' ? 'Aug 28' : request.eventDay === 'day2' ? 'Aug 29' : 'Aug 30',
+        time: request.preferredTime,
+        status: request.status === 'offered' ? `Offered by ${request.offerer?.username || 'someone'}` : request.status,
+        notes: request.notes
+      });
+    });
+
+    // Add pending invitations
+    pendingInvitations.forEach((invitation: any) => {
+      userRides.push({
+        type: "invitation",
+        role: "Ride Invitation",
+        route: `${invitation.ride.departure} → ${invitation.ride.destination}`,
+        day: invitation.ride.eventDay === 'day1' ? 'Aug 28' : invitation.ride.eventDay === 'day2' ? 'Aug 29' : 'Aug 30',
+        time: invitation.ride.departureTime,
+        driver: invitation.ride.driver.username,
+        status: "Invitation pending"
+      });
+    });
+
+    return userRides;
+  };
+
   const getDietaryStatus = () => {
     if (!attendance) return t('notSet');
     const preferences = [];
@@ -313,21 +393,39 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <Car className="h-5 w-5 text-ff-primary mr-2" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Ride Details</h3>
           </div>
-          {rideInfo && rideInfo.details.length > 0 ? (
-            <div className="space-y-2">
-              {rideInfo.details.map((detail, index) => (
-                <div key={index} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-                  <div className="w-2 h-2 bg-ff-primary rounded-full mr-3"></div>
-                  <span>{detail}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-              <div className="w-2 h-2 bg-gray-400 rounded-full mr-3"></div>
-              <span>No active ride coordination</span>
-            </div>
-          )}
+          {(() => {
+            const allRides = getAllUserRides();
+            return allRides.length > 0 ? (
+              <div className="space-y-4">
+                {allRides.map((ride, index) => (
+                  <div key={index} className="border-l-2 border-ff-primary/30 pl-4 pb-3">
+                    <div className="flex items-center mb-2">
+                      <div className="w-2 h-2 bg-ff-primary rounded-full mr-3"></div>
+                      <span className="font-medium text-sm text-gray-900 dark:text-white">{ride.role}</span>
+                      {ride.hasNotifications && (
+                        <span className="ml-2 bg-ff-primary text-black text-xs font-bold rounded-full px-2 py-1">
+                          {ride.notificationCount}
+                        </span>
+                      )}
+                    </div>
+                    <div className="ml-5 space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                      <div>{ride.route}</div>
+                      <div>{ride.day} at {ride.time}</div>
+                      {ride.driver && <div>Driver: {ride.driver}</div>}
+                      {ride.seats && <div>Seats: {ride.seats}</div>}
+                      {ride.status && <div>Status: {ride.status}</div>}
+                      {ride.notes && <div>Notes: {ride.notes}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <div className="w-2 h-2 bg-gray-400 rounded-full mr-3"></div>
+                <span>No active ride coordination</span>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
 
