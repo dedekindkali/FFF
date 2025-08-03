@@ -92,7 +92,7 @@ export function Participants({ onNavigate }: ParticipantsProps) {
       if (period.start.label === period.end.label) {
         return period.start.label;
       } else {
-        return `from ${period.start.label} to ${period.end.label}`;
+        return `${t('from')} ${period.start.label} ${t('to')} ${period.end.label}`;
       }
     });
   };

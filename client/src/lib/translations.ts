@@ -372,6 +372,8 @@ export const translations = {
     userSelected: "utente selezionato per l'invito",
     departureMassello: "Partenza da Massello",
     arrivalMassello: "Arrivo a Massello",
+    from: "da",
+    to: "a",
     
     // Ride coordination
     offeringRide: "Offre Passaggio",

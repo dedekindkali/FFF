@@ -159,7 +159,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       if (period.start.label === period.end.label) {
         return period.start.label;
       } else {
-        return `from ${period.start.label} to ${period.end.label}`;
+        return `${t('from')} ${period.start.label} ${t('to')} ${period.end.label}`;
       }
     });
   };
@@ -271,7 +271,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       userRides.push({
         id: ride.id,
         type: "driver",
-        title: `${ride.tripType} ${eventDay} ${ride.departureTime}`,
+        title: `${ride.tripType === 'arrival' ? t('arrival') : t('departure')} ${eventDay} ${ride.departureTime}`,
         role: t('driver'),
         details: {
           route: `${ride.departure} → ${ride.destination}`,
@@ -292,7 +292,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       userRides.push({
         id: joinReq.ride.id,
         type: "passenger",
-        title: `${joinReq.ride.tripType} ${eventDay} ${joinReq.ride.departureTime}`,
+        title: `${joinReq.ride.tripType === 'arrival' ? t('arrival') : t('departure')} ${eventDay} ${joinReq.ride.departureTime}`,
         role: t('passenger'),
         details: {
           route: `${joinReq.ride.departure} → ${joinReq.ride.destination}`,
