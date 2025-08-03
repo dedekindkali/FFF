@@ -44,13 +44,41 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
   const currentUser = (authData as any)?.user;
 
   const offerRideMutation = useMutation({
-    mutationFn: (rideData: InsertRide) => apiRequest('POST', '/api/rides', rideData),
-    onSuccess: () => {
+    mutationFn: async (rideData: InsertRide & { inviteUsers?: number[] }) => {
+      // Step 1: Create the ride
+      const response = await apiRequest('POST', '/api/rides', rideData);
+      const responseData = await response.json();
+      const createdRide = responseData.ride;
+      
+      // Step 2: Send invitations if users were selected
+      if (rideData.inviteUsers && rideData.inviteUsers.length > 0) {
+        const invitationPromises = rideData.inviteUsers.map(userId => 
+          apiRequest('POST', `/api/rides/${createdRide.id}/invite`, {
+            userId,
+            message: `You've been invited to join this ${rideData.tripType} ride from ${rideData.departure} to ${rideData.destination} on ${rideData.eventDay === 'day1' ? 'Aug 28' : rideData.eventDay === 'day2' ? 'Aug 29' : 'Aug 30'} at ${rideData.departureTime}.`
+          })
+        );
+        
+        try {
+          await Promise.all(invitationPromises);
+        } catch (inviteError) {
+          console.warn('Some invitations failed to send:', inviteError);
+          // Continue - ride was created successfully
+        }
+      }
+      
+      return { ride: createdRide, invitationsSent: rideData.inviteUsers?.length || 0 };
+    },
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['/api/rides'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ride-invitations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       setShowOfferDialog(false);
       toast({
         title: "Success",
-        description: "Ride offer created successfully!",
+        description: result.invitationsSent > 0 
+          ? `Ride created successfully! ${result.invitationsSent} invitation${result.invitationsSent > 1 ? 's' : ''} sent.`
+          : "Ride offer created successfully!",
       });
     },
   });
@@ -1285,7 +1313,7 @@ function JoinRequestCard({ request, onRespond, isResponding, onNavigate }: {
   );
 }
 
-function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide) => void, isLoading: boolean }) {
+function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide & { inviteUsers?: number[] }) => void, isLoading: boolean }) {
   const { t } = useLanguage();
   const [formData, setFormData] = useState({
     tripType: 'departure' as 'arrival' | 'departure',
@@ -1296,6 +1324,13 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide)
     totalSeats: 4,
     notes: '',
   });
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+
+  // Fetch all users for invitation selection
+  const { data: usersData } = useQuery({
+    queryKey: ['/api/users'],
+  });
+  const users = (usersData as any)?.users || [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1303,6 +1338,7 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide)
       ...formData,
       availableSeats: formData.totalSeats,
       driverId: 0, // This will be set by the backend
+      inviteUsers: selectedUsers, // Include selected users for invitation
     };
     
     // Adjust departure/destination based on trip type
@@ -1313,6 +1349,14 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide)
     }
     
     onSubmit(rideData);
+  };
+
+  const toggleUserSelection = (userId: number) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
   };
 
   return (
@@ -1453,6 +1497,38 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide)
             onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
             placeholder="Additional information..."
           />
+        </div>
+
+        {/* User Invitation Section */}
+        <div>
+          <Label>Invite Users (Optional)</Label>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            Select users to send ride invitations to when creating this ride
+          </p>
+          <div className="max-h-32 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-2">
+            {users.length > 0 ? (
+              <div className="space-y-2">
+                {users.map((user: any) => (
+                  <label key={user.id} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(user.id)}
+                      onChange={() => toggleUserSelection(user.id)}
+                      className="rounded"
+                    />
+                    <span className="text-sm">{user.username}</span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">Loading users...</p>
+            )}
+          </div>
+          {selectedUsers.length > 0 && (
+            <p className="text-sm text-ff-primary mt-1">
+              {selectedUsers.length} user{selectedUsers.length > 1 ? 's' : ''} selected for invitation
+            </p>
+          )}
         </div>
         
         <Button type="submit" disabled={isLoading} className="w-full">

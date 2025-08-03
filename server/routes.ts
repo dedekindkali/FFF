@@ -157,6 +157,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Users routes
+  app.get("/api/users", async (req, res) => {
+    const userId = (req as any).session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const users = await storage.getAllUsers();
+      res.json({ users });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Admin authentication
   app.post("/api/admin/auth", async (req, res) => {
     const userId = (req as any).session?.userId;
