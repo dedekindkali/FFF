@@ -1330,7 +1330,12 @@ function OfferRideDialog({ onSubmit, isLoading }: { onSubmit: (data: InsertRide 
   const { data: usersData } = useQuery({
     queryKey: ['/api/users'],
   });
-  const users = (usersData as any)?.users || [];
+  const { data: authData } = useQuery({
+    queryKey: ['/api/auth/me'],
+  });
+  const currentUser = (authData as any)?.user;
+  // Filter out the current user (driver) from the users list
+  const users = ((usersData as any)?.users || []).filter((user: any) => user.id !== currentUser?.id);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

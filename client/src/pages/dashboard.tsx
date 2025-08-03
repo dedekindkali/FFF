@@ -1,9 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Car, Utensils, Users, CalendarPlus, CarFront, Leaf, MapPin, Clock, User, Bell } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useEffect, useRef } from "react";
 
 interface DashboardProps {
   onNavigate: (view: string) => void;
@@ -11,6 +14,8 @@ interface DashboardProps {
 
 export function Dashboard({ onNavigate }: DashboardProps) {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const processedNotificationsRef = useRef<Set<number>>(new Set());
   const { data: attendanceData } = useQuery({
     queryKey: ['/api/attendance'],
   });
@@ -53,6 +58,42 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const unreadNotifications = notifications.filter((n: any) => !n.isRead);
   const rideInvitations = (rideInvitationsData as any)?.invitations || [];
   const pendingInvitations = rideInvitations.filter((inv: any) => inv.status === 'pending');
+
+  // Mutation to mark notifications as read
+  const markNotificationReadMutation = useMutation({
+    mutationFn: (notificationId: number) => apiRequest('POST', `/api/notifications/${notificationId}/read`),
+    onSuccess: () => {
+      // Delay query invalidation to prevent immediate re-rendering
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      }, 2000);
+    },
+  });
+
+  // Effect to show temporary toasts for ride modification notifications
+  useEffect(() => {
+    const rideModifiedNotifications = notifications.filter((n: any) => 
+      n.type === 'ride_modified' && !n.isRead && !processedNotificationsRef.current.has(n.id)
+    );
+    
+    if (rideModifiedNotifications.length > 0) {
+      rideModifiedNotifications.forEach((notification: any) => {
+        // Add to processed set to prevent duplicate processing
+        processedNotificationsRef.current.add(notification.id);
+        
+        toast({
+          title: "Ride Modified",
+          description: notification.message,
+          duration: 5000, // Show for 5 seconds
+        });
+        
+        // Mark notification as read after showing the toast
+        setTimeout(() => {
+          markNotificationReadMutation.mutate(notification.id);
+        }, 1000); // Delay to ensure toast is shown first
+      });
+    }
+  }, [notifications]);
 
 
 
