@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Car, Plus, MapPin, Clock, Users, MessageSquare, Calendar, User, Edit, Bell, ChevronDown, Trash2, Search, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Car, Plus, MapPin, Clock, Users, MessageSquare, Calendar, User, Edit, Bell, ChevronDown, Trash2, Search, X, Filter } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +23,9 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
   const [showModifyDialog, setShowModifyDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [eventDayFilter, setEventDayFilter] = useState("");
+  const [rideTypeFilter, setRideTypeFilter] = useState("");
+  const [availabilityFilter, setAvailabilityFilter] = useState("");
 
   const { data: ridesData } = useQuery({
     queryKey: ['/api/rides'],
@@ -130,45 +134,78 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
 
   // Filter functions
   const filterItems = (items: any[], type: 'rides' | 'requests' | 'joinRequests' | 'invitations') => {
-    if (!searchTerm) return items;
+    let filtered = items;
     
-    const lowerSearch = searchTerm.toLowerCase();
+    // Apply search filter
+    if (searchTerm) {
+      const lowerSearch = searchTerm.toLowerCase();
+      
+      filtered = filtered.filter((item: any) => {
+        switch (type) {
+          case 'rides':
+            return (
+              item.departure?.toLowerCase().includes(lowerSearch) ||
+              item.destination?.toLowerCase().includes(lowerSearch) ||
+              item.driver?.username?.toLowerCase().includes(lowerSearch) ||
+              item.notes?.toLowerCase().includes(lowerSearch) ||
+              item.eventDay?.toLowerCase().includes(lowerSearch)
+            );
+          case 'requests':
+            return (
+              item.departure?.toLowerCase().includes(lowerSearch) ||
+              item.destination?.toLowerCase().includes(lowerSearch) ||
+              item.requester?.username?.toLowerCase().includes(lowerSearch) ||
+              item.notes?.toLowerCase().includes(lowerSearch) ||
+              item.eventDay?.toLowerCase().includes(lowerSearch)
+            );
+          case 'joinRequests':
+            return (
+              item.ride?.departure?.toLowerCase().includes(lowerSearch) ||
+              item.ride?.destination?.toLowerCase().includes(lowerSearch) ||
+              item.requester?.username?.toLowerCase().includes(lowerSearch) ||
+              item.message?.toLowerCase().includes(lowerSearch)
+            );
+          case 'invitations':
+            return (
+              item.ride?.departure?.toLowerCase().includes(lowerSearch) ||
+              item.ride?.destination?.toLowerCase().includes(lowerSearch) ||
+              item.inviter?.username?.toLowerCase().includes(lowerSearch)
+            );
+          default:
+            return true;
+        }
+      });
+    }
     
-    return items.filter((item: any) => {
-      switch (type) {
-        case 'rides':
-          return (
-            item.departure?.toLowerCase().includes(lowerSearch) ||
-            item.destination?.toLowerCase().includes(lowerSearch) ||
-            item.driver?.username?.toLowerCase().includes(lowerSearch) ||
-            item.notes?.toLowerCase().includes(lowerSearch) ||
-            item.eventDay?.toLowerCase().includes(lowerSearch)
-          );
-        case 'requests':
-          return (
-            item.departure?.toLowerCase().includes(lowerSearch) ||
-            item.destination?.toLowerCase().includes(lowerSearch) ||
-            item.requester?.username?.toLowerCase().includes(lowerSearch) ||
-            item.notes?.toLowerCase().includes(lowerSearch) ||
-            item.eventDay?.toLowerCase().includes(lowerSearch)
-          );
-        case 'joinRequests':
-          return (
-            item.ride?.departure?.toLowerCase().includes(lowerSearch) ||
-            item.ride?.destination?.toLowerCase().includes(lowerSearch) ||
-            item.requester?.username?.toLowerCase().includes(lowerSearch) ||
-            item.message?.toLowerCase().includes(lowerSearch)
-          );
-        case 'invitations':
-          return (
-            item.ride?.departure?.toLowerCase().includes(lowerSearch) ||
-            item.ride?.destination?.toLowerCase().includes(lowerSearch) ||
-            item.inviter?.username?.toLowerCase().includes(lowerSearch)
-          );
-        default:
-          return true;
+    // Apply event day filter
+    if (eventDayFilter) {
+      filtered = filtered.filter((item: any) => {
+        const eventDay = type === 'joinRequests' || type === 'invitations' 
+          ? item.ride?.eventDay 
+          : item.eventDay;
+        return eventDay === eventDayFilter;
+      });
+    }
+    
+    // Apply ride type filter (for rides and requests)
+    if (rideTypeFilter && (type === 'rides' || type === 'requests')) {
+      if (rideTypeFilter === 'offering') {
+        filtered = type === 'rides' ? filtered : [];
+      } else if (rideTypeFilter === 'requesting') {
+        filtered = type === 'requests' ? filtered : [];
       }
-    });
+    }
+    
+    // Apply availability filter (for rides)
+    if (availabilityFilter && type === 'rides') {
+      if (availabilityFilter === 'available') {
+        filtered = filtered.filter((item: any) => item.availableSeats > 0 && item.isActive);
+      } else if (availabilityFilter === 'full') {
+        filtered = filtered.filter((item: any) => item.availableSeats === 0 || !item.isActive);
+      }
+    }
+    
+    return filtered;
   };
 
   const respondToJoinRequestMutation = useMutation({
@@ -234,7 +271,7 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
 
       {/* Search and Filter Section */}
       <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-        <CardContent className="p-4">
+        <CardContent className="p-4 space-y-4">
           <div className="flex items-center space-x-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -255,12 +292,83 @@ export function Rides({ onNavigate }: { onNavigate?: (view: string, userId?: num
                 </Button>
               )}
             </div>
-            {searchTerm && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? "bg-ff-primary text-white" : ""}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              {t('filters')}
+            </Button>
+            {(searchTerm || eventDayFilter || rideTypeFilter || availabilityFilter) && (
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                {t('searchActive')}
+                {t('filtersActive')}
               </div>
             )}
           </div>
+          
+          {showFilters && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">{t('eventDay')}</Label>
+                <Select value={eventDayFilter} onValueChange={setEventDayFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('allDays')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">{t('allDays')}</SelectItem>
+                    <SelectItem value="day1">{t('day1')}</SelectItem>
+                    <SelectItem value="day2">{t('day2')}</SelectItem>
+                    <SelectItem value="day3">{t('day3')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">{t('rideType')}</Label>
+                <Select value={rideTypeFilter} onValueChange={setRideTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('allTypes')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">{t('allTypes')}</SelectItem>
+                    <SelectItem value="offering">{t('offeringRides')}</SelectItem>
+                    <SelectItem value="requesting">{t('requestingRides')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">{t('availability')}</Label>
+                <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('allAvailability')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">{t('allAvailability')}</SelectItem>
+                    <SelectItem value="available">{t('availableSeats')}</SelectItem>
+                    <SelectItem value="full">{t('fullRides')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="md:col-span-3 flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setEventDayFilter("");
+                    setRideTypeFilter("");
+                    setAvailabilityFilter("");
+                  }}
+                >
+                  {t('clearFilters')}
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
